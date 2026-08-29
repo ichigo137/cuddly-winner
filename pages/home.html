@@ -106,9 +106,7 @@
       padding: 40px 30px; text-align: center;
       transition: all .5s cubic-bezier(.23,1,.32,1);
       position: relative; overflow: hidden;
-      opacity: 0; transform: translateY(40px);
     }
-    .quality-card.visible { opacity: 1; transform: translateY(0); }
     .quality-card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
       background: linear-gradient(90deg, var(--gold), var(--rose), var(--lavender));
@@ -139,9 +137,7 @@
     }
     .timeline-item {
       display: flex; align-items: center; margin-bottom: 60px; position: relative;
-      opacity: 0; transform: translateY(30px);
     }
-    .timeline-item.visible { opacity: 1; transform: translateY(0); transition: all .8s cubic-bezier(.23,1,.32,1); }
     .timeline-item:nth-child(odd) { flex-direction: row; }
     .timeline-item:nth-child(even) { flex-direction: row-reverse; }
     .timeline-content {
@@ -205,8 +201,8 @@
 
   <!-- LETTER -->
   <section id="letter-section">
-    <div class="section-header reveal"><div class="ornament">✦ ✦ ✦</div><h2>A Letter From My Heart</h2><p>Words that come from the soul</p></div>
-    <div class="letter-container reveal">
+    <div class="section-header"><div class="ornament">✦ ✦ ✦</div><h2>A Letter From My Heart</h2><p>Words that come from the soul</p></div>
+    <div class="letter-container">
       <div class="letter-paper">
         <div class="letter-greeting">My Dearest Sister,</div>
         <div class="letter-body">
@@ -224,7 +220,7 @@
 
   <!-- QUALITIES -->
   <section id="qualities-section">
-    <div class="section-header reveal"><div class="ornament">✦ ✦ ✦</div><h2>You Are Everything</h2><p>What makes you truly extraordinary</p></div>
+    <div class="section-header"><div class="ornament">✦ ✦ ✦</div><h2>You Are Everything</h2><p>What makes you truly extraordinary</p></div>
     <div class="qualities-grid">
       <div class="quality-card"><span class="quality-icon">🌟</span><h3>A Guiding Light</h3><p>You illuminate the path for everyone around you. Your wisdom and warmth are a compass that always points toward what matters most.</p></div>
       <div class="quality-card"><span class="quality-icon">🦋</span><h3>Grace Personified</h3><p>You carry yourself with an elegance that goes beyond appearances — it's in your words, your actions, and the way you touch every life you enter.</p></div>
@@ -237,7 +233,7 @@
 
   <!-- TIMELINE -->
   <section id="timeline-section">
-    <div class="section-header reveal"><div class="ornament">✦ ✦ ✦</div><h2>Our Beautiful Journey</h2><p>Moments that made us who we are</p></div>
+    <div class="section-header"><div class="ornament">✦ ✦ ✦</div><h2>Our Beautiful Journey</h2><p>Moments that made us who we are</p></div>
     <div class="timeline-container">
       <div class="timeline-line"></div>
       <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">The Beginning</div><div class="timeline-title">The Day You Came Into This World</div><div class="timeline-desc">You arrived like a ray of sunshine, filling our lives with a light that has never dimmed. From your very first breath, you made the world a better place.</div></div><div class="timeline-dot"></div></div>
