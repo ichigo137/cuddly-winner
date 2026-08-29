@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wish Wall</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    body { background: var(--midnight); }
+    .wishes-page { padding: 100px 20px 60px; max-width: 1000px; margin: 0 auto; }
+    .wish-form { max-width: 600px; margin: 0 auto 30px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .wish-form input, .wish-form textarea {
+      padding: 12px 18px; background: rgba(255,255,255,.06);
+      border: 1px solid rgba(212,168,83,.2); border-radius: 12px;
+      color: var(--blush); font-family: 'Cormorant Garamond', serif;
+      font-size: 16px; outline: none; transition: border-color .3s; width: 100%;
+    }
+    .wish-form textarea { min-height: 80px; resize: vertical; }
+    .wish-form input:focus, .wish-form textarea:focus { border-color: var(--gold); }
+    .wish-form button {
+      padding: 12px 30px; background: linear-gradient(135deg, var(--rose-deep), var(--gold));
+      border: none; border-radius: 12px; color: #fff;
+      font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: all .3s;
+    }
+    .wish-form button:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(201,75,124,.4); }
+    .wish-wall { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+    .floating-wish {
+      background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      border: 1px solid rgba(212,168,83,.2); border-radius: 16px;
+      padding: 20px 24px; max-width: 280px;
+      transition: all .4s; animation: fadeInUp .6s ease; position: relative;
+    }
+    .floating-wish:hover { transform: translateY(-5px) scale(1.02); border-color: var(--gold); box-shadow: 0 10px 30px rgba(212,168,83,.15); }
+    .floating-wish .wish-heart {
+      position: absolute; top: 8px; right: 12px;
+      font-size: 14px; cursor: pointer; transition: transform .3s;
+    }
+    .floating-wish .wish-heart:hover { transform: scale(1.3); }
+    .floating-wish .wish-msg { font-size: 16px; color: var(--blush); line-height: 1.6; }
+    .floating-wish .wish-from { font-family: 'Dancing Script', cursive; font-size: 14px; color: var(--gold-light); margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wishes-page">
+    <div class="section-header">
+      <div class="ornament">✦ ✦ ✦</div>
+      <h2>Wish Wall</h2>
+      <p>Send your love — add a wish to the wall!</p>
+    </div>
+
+    <div class="wish-form">
+      <input type="text" id="wishName" placeholder="Your name..." maxlength="30">
+      <textarea id="wishMsg" placeholder="Write a heartfelt wish..." maxlength="200"></textarea>
+      <button onclick="addWish()">💌 Send Wish</button>
+    </div>
+
+    <div class="wish-wall" id="wishWall"></div>
+  </div>
+
+  <script src="../js/engine.js"></script>
+  <script>
+    const defaults = [
+      { name: 'A Grateful Heart', msg: "May this birthday bring you all the happiness your beautiful soul deserves!", likes: 5 },
+      { name: 'Your Biggest Fan', msg: "You inspire everyone around you. Here's to another year of magic! ✨", likes: 3 },
+      { name: 'Forever Sister', msg: "No distance or time can weaken what we share. Love you always! 💕", likes: 7 },
+      { name: 'A Friend', msg: "Wishing you laughter, love, and all the cake you can eat! 🎂", likes: 2 },
+    ];
+    let wishes = JSON.parse(localStorage.getItem('bdayWishes') || 'null') || defaults;
+
+    function renderWishes() {
+      const wall = document.getElementById('wishWall');
+      wall.innerHTML = '';
+      wishes.forEach((w, i) => {
+        const card = document.createElement('div');
+        card.className = 'floating-wish';
+        card.innerHTML = `<div class="wish-heart ${w.liked ? 'liked' : ''}" onclick="likeWish(${i})">❤️ ${w.likes || 0}</div><div class="wish-msg">${w.msg}</div><div class="wish-from">— ${w.name}</div>`;
+        wall.appendChild(card);
+      });
+    }
+
+    function addWish() {
+      const name = document.getElementById('wishName').value.trim() || 'Anonymous';
+      const msg = document.getElementById('wishMsg').value.trim();
+      if (!msg) { alert('Please write a wish!'); return; }
+      wishes.unshift({ name, msg, likes: 0, liked: false });
+      localStorage.setItem('bdayWishes', JSON.stringify(wishes));
+      document.getElementById('wishName').value = '';
+      document.getElementById('wishMsg').value = '';
+      renderWishes();
+      parent.ConfettiEngine.launch();
+    }
+
+    function likeWish(i) {
+      wishes[i].liked = !wishes[i].liked;
+      wishes[i].likes += wishes[i].liked ? 1 : -1;
+      localStorage.setItem('bdayWishes', JSON.stringify(wishes));
+      renderWishes();
+    }
+
+    renderWishes();
+  </script>
+</body>
+</html>

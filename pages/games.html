@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Games</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    body { background: var(--midnight); }
+    .games-page { padding: 100px 20px 60px; max-width: 1000px; margin: 0 auto; }
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+    .game-card {
+      background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid rgba(212,168,83,.2); border-radius: 20px;
+      padding: 40px 30px; text-align: center; cursor: pointer;
+      transition: all .5s cubic-bezier(.23,1,.32,1);
+    }
+    .game-card:hover { transform: translateY(-8px); border-color: var(--gold); box-shadow: 0 20px 60px rgba(212,168,83,.2); }
+    .game-card-icon { font-size: 60px; margin-bottom: 15px; display: block; animation: float 3s ease-in-out infinite; }
+    .game-card h3 { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold-light); margin-bottom: 8px; }
+    .game-card p { font-size: 16px; color: rgba(252,228,236,.7); font-weight: 300; }
+    .game-back { font-family: 'Dancing Script', cursive; font-size: 18px; color: var(--gold-light); cursor: pointer; background: none; border: none; margin-bottom: 20px; transition: color .3s; }
+    .game-back:hover { color: var(--rose); }
+    .game-score { font-family: 'Dancing Script', cursive; font-size: 22px; color: var(--gold-light); margin-bottom: 15px; text-align: center; }
+    .game-area { max-width: 600px; margin: 0 auto; text-align: center; }
+
+    /* Memory */
+    .mem-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 480px; margin: 0 auto; }
+    .mem-card { aspect-ratio: 1; border-radius: 12px; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform .5s; }
+    .mem-card.flipped { transform: rotateY(180deg); }
+    .mem-card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; }
+    .mem-front, .mem-back { position: absolute; inset: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; }
+    .mem-front { background: linear-gradient(135deg, var(--rose-deep), var(--gold)); font-size: 32px; }
+    .mem-back { background: linear-gradient(145deg, rgba(255,255,255,.1), rgba(255,255,255,.03)); border: 2px solid rgba(212,168,83,.3); transform: rotateY(180deg); font-size: 36px; }
+    .mem-card.matched .mem-back { border-color: #4ade80; background: rgba(74,222,128,.1); }
+
+    /* Star Catcher */
+    #catcherCanvas { width: 100%; max-width: 600px; border-radius: 16px; border: 2px solid rgba(212,168,83,.3); display: block; margin: 0 auto; touch-action: none; }
+
+    /* Balloons */
+    .balloon-area { position: relative; width: 100%; max-width: 600px; height: 450px; margin: 0 auto; border-radius: 16px; border: 2px solid rgba(212,168,83,.3); overflow: hidden; background: linear-gradient(180deg, rgba(201,177,255,.05), rgba(232,160,191,.05)); }
+    .balloon { position: absolute; font-size: 48px; cursor: pointer; user-select: none; }
+    .balloon:hover { transform: scale(1.15); }
+    .balloon.popped { animation: pop .4s forwards; }
+    @keyframes pop { 0%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.5} 100%{transform:scale(0);opacity:0} }
+
+    @media (max-width: 480px) { .mem-board { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
+  </style>
+</head>
+<body>
+  <div class="games-page">
+    <div class="section-header">
+      <div class="ornament">✦ ✦ ✦</div>
+      <h2>Birthday Games</h2>
+      <p>Pick a game and have fun!</p>
+    </div>
+    <div id="gamesHub">
+      <div class="games-grid">
+        <div class="game-card" onclick="startGame('memory')"><span class="game-card-icon">🃏</span><h3>Memory Match</h3><p>Find all the matching pairs of birthday emojis!</p></div>
+        <div class="game-card" onclick="startGame('catcher')"><span class="game-card-icon">⭐</span><h3>Star Catcher</h3><p>Catch falling stars and avoid the clouds!</p></div>
+        <div class="game-card" onclick="startGame('balloon')"><span class="game-card-icon">🎈</span><h3>Pop the Balloons</h3><p>Pop as many balloons as you can before time runs out!</p></div>
+      </div>
+    </div>
+    <div id="gameArea" style="display:none"></div>
+  </div>
+
+  <script src="../js/engine.js"></script>
+  <script>
+    let currentGame = null, catcherAF = null;
+
+    function startGame(game) {
+      currentGame = game;
+      document.getElementById('gamesHub').style.display = 'none';
+      const area = document.getElementById('gameArea');
+      area.style.display = 'block';
+      area.innerHTML = `<button class="game-back" onclick="exitGame()">← Back to Games</button>`;
+      if (game === 'memory') initMemory(area);
+      else if (game === 'catcher') initCatcher(area);
+      else if (game === 'balloon') initBalloon(area);
+    }
+    function exitGame() {
+      currentGame = null;
+      if (catcherAF) cancelAnimationFrame(catcherAF);
+      document.getElementById('gamesHub').style.display = '';
+      document.getElementById('gameArea').style.display = 'none';
+    }
+
+    /* ===== MEMORY MATCH ===== */
+    function initMemory(area) {
+      const emojis = ['🎂','🎁','🎈','🎀','💖','🌟','🦋','🌸'];
+      let cards = [...emojis, ...emojis].sort(() => Math.random() - .5);
+      let flipped = [], matched = [], moves = 0, canFlip = true;
+      const scoreDiv = document.createElement('div');
+      scoreDiv.className = 'game-score';
+      scoreDiv.textContent = 'Moves: 0 | Matched: 0/8';
+      const board = document.createElement('div');
+      board.className = 'mem-board';
+      area.appendChild(scoreDiv);
+      area.appendChild(board);
+      cards.forEach((emoji, i) => {
+        const card = document.createElement('div');
+        card.className = 'mem-card';
+        card.innerHTML = `<div class="mem-card-inner"><div class="mem-front">🎁</div><div class="mem-back">${emoji}</div></div>`;
+        card.onclick = () => {
+          if (!canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+          card.classList.add('flipped');
+          flipped.push({ card, emoji });
+          if (flipped.length === 2) {
+            moves++;
+            canFlip = false;
+            if (flipped[0].emoji === flipped[1].emoji) {
+              flipped.forEach(f => f.card.classList.add('matched'));
+              matched.push(flipped[0].emoji);
+              flipped = [];
+              canFlip = true;
+              if (matched.length === 8) {
+                scoreDiv.textContent = `🎉 You Won in ${moves} moves! 🎉`;
+                parent.ConfettiEngine.launch();
+              }
+            } else {
+              setTimeout(() => { flipped.forEach(f => f.card.classList.remove('flipped')); flipped = []; canFlip = true; }, 800);
+            }
+            scoreDiv.textContent = `Moves: ${moves} | Matched: ${matched.length}/8`;
+          }
+        };
+        board.appendChild(card);
+      });
+    }
+
+    /* ===== STAR CATCHER ===== */
+    function initCatcher(area) {
+      const scoreDiv = document.createElement('div');
+      scoreDiv.className = 'game-score';
+      scoreDiv.textContent = 'Score: 0 ❤️ Lives: 3';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'catcherCanvas';
+      canvas.width = 600; canvas.height = 400;
+      area.appendChild(scoreDiv);
+      area.appendChild(canvas);
+      const ctx = canvas.getContext('2d');
+      let score = 0, lives = 3, px = 275, stars = [], clouds = [], timer = 0, over = false;
+      canvas.addEventListener('mousemove', e => { const r = canvas.getBoundingClientRect(); px = ((e.clientX - r.left) / r.width) * 600 - 25; });
+      canvas.addEventListener('touchmove', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); px = ((e.touches[0].clientX - r.left) / r.width) * 600 - 25; }, { passive: false });
+      function loop() {
+        if (over) return;
+        ctx.clearRect(0, 0, 600, 400);
+        const grd = ctx.createLinearGradient(0, 0, 0, 400); grd.addColorStop(0, '#1a0a2e'); grd.addColorStop(1, '#2d1b4e'); ctx.fillStyle = grd; ctx.fillRect(0, 0, 600, 400);
+        ctx.font = '40px serif'; ctx.fillText('🧺', px, 385);
+        timer++;
+        if (timer % 50 === 0) stars.push({ x: Math.random() * 560, y: -20, s: Math.random() * 2 + 1.5 });
+        if (timer % 80 === 0) clouds.push({ x: Math.random() * 560, y: -30, s: Math.random() * 1.5 + 1 });
+        stars = stars.filter(s => { s.y += s.s; ctx.font = '20px serif'; ctx.fillText('⭐', s.x, s.y); if (s.y > 360 && s.x > px - 10 && s.x < px + 60) { score++; scoreDiv.textContent = `Score: ${score} ❤️ Lives: ${lives}`; return false; } return s.y < 420; });
+        clouds = clouds.filter(c => { c.y += c.s; ctx.font = '30px serif'; ctx.fillText('☁️', c.x, c.y); if (c.y > 350 && c.x > px - 15 && c.x < px + 65) { lives--; scoreDiv.textContent = `Score: ${score} ❤️ Lives: ${lives}`; if (lives <= 0) { over = true; scoreDiv.textContent = `Game Over! Score: ${score} 🌟`; parent.ConfettiEngine.launch(); } return false; } return c.y < 420; });
+        if (!over) catcherAF = requestAnimationFrame(loop);
+      }
+      loop();
+    }
+
+    /* ===== POP BALLOONS ===== */
+    function initBalloon(area) {
+      const scoreDiv = document.createElement('div');
+      scoreDiv.className = 'game-score';
+      scoreDiv.textContent = 'Score: 0 ⏱️ Time: 30';
+      const balArea = document.createElement('div');
+      balArea.className = 'balloon-area';
+      area.appendChild(scoreDiv);
+      area.appendChild(balArea);
+      let score = 0, timeLeft = 30;
+      const emojis = ['🎈','🎉','💖','⭐','🌟','🦋','🌸','🎀'];
+      function spawn() {
+        const b = document.createElement('div');
+        b.className = 'balloon';
+        b.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        b.style.left = Math.random() * 520 + 'px';
+        b.style.bottom = '-50px';
+        b.onclick = () => { b.classList.add('popped'); score++; scoreDiv.textContent = `Score: ${score} ⏱️ Time: ${timeLeft}`; setTimeout(() => b.remove(), 400); };
+        balArea.appendChild(b);
+        let pos = 0;
+        const int = setInterval(() => { pos += 2; b.style.bottom = pos + 'px'; if (pos > 480) { clearInterval(int); b.remove(); } }, 30);
+      }
+      const clockInt = setInterval(() => {
+        if (timeLeft <= 0) { clearInterval(clockInt); clearInterval(spawnInt); scoreDiv.textContent = `🎉 Final Score: ${score}! 🎉`; parent.ConfettiEngine.launch(); return; }
+        timeLeft--; scoreDiv.textContent = `Score: ${score} ⏱️ Time: ${timeLeft}`;
+      }, 1000);
+      const spawnInt = setInterval(() => { if (timeLeft > 0) spawn(); }, 600);
+    }
+  </script>
+</body>
+</html>

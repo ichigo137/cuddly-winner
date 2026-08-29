@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Cake</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    body { background: var(--midnight); }
+    .cake-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 100px 20px 60px; }
+
+    /* Cake */
+    .cake-scene { position: relative; width: 340px; height: 380px; margin: 30px auto; }
+    .cake-base { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 240px; height: 50px; background: linear-gradient(135deg, var(--rose-deep), #a83279); border-radius: 0 0 20px 20px; box-shadow: 0 8px 30px rgba(201,75,124,.4); }
+    .cake-mid { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 200px; height: 60px; background: linear-gradient(135deg, var(--gold), #c9913a); border-radius: 12px; box-shadow: 0 4px 20px rgba(212,168,83,.4); }
+    .cake-top { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); width: 160px; height: 50px; background: linear-gradient(135deg, var(--lavender), #a78bfa); border-radius: 12px 12px 8px 8px; box-shadow: 0 4px 20px rgba(201,177,255,.4); }
+    .cake-frosting { position: absolute; bottom: 145px; left: 50%; transform: translateX(-50%); width: 180px; height: 20px; background: var(--cream); border-radius: 50%; box-shadow: 0 2px 10px rgba(253,246,240,.3); }
+
+    /* Sprinkles */
+    .sprinkle { position: absolute; width: 6px; height: 3px; border-radius: 3px; opacity: .8; }
+
+    /* Candles */
+    .candle-container { position: absolute; bottom: 155px; left: 50%; transform: translateX(-50%); display: flex; gap: 22px; }
+    .candle { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform .3s; }
+    .candle:hover { transform: scale(1.15); }
+    .candle-stick { width: 8px; height: 40px; background: linear-gradient(180deg, var(--gold-light), var(--gold)); border-radius: 4px; }
+    .candle-flame {
+      width: 16px; height: 22px;
+      background: radial-gradient(ellipse at bottom, #ff6b35, #ffcc02, #fff);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      animation: flicker .3s ease-in-out infinite alternate;
+      transition: all .5s;
+    }
+    .candle-flame.out { opacity: 0; transform: scale(0) translateY(10px); height: 0; }
+    @keyframes flicker {
+      0% { transform: scale(1) rotate(-2deg); filter: drop-shadow(0 0 8px rgba(255,107,53,.8)); }
+      100% { transform: scale(1.05) rotate(2deg); filter: drop-shadow(0 0 15px rgba(255,204,2,.9)); }
+    }
+
+    /* Text */
+    .cake-instruction { font-family: 'Dancing Script', cursive; font-size: 22px; color: var(--gold-light); margin-top: 20px; animation: pulse 2s ease-in-out infinite; }
+    .cake-celebration {
+      display: none; font-family: 'Great Vibes', cursive;
+      font-size: clamp(30px, 6vw, 56px);
+      background: linear-gradient(135deg, var(--gold-light), var(--rose));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-top: 30px; animation: fadeInUp 1s ease forwards;
+    }
+    .cake-celebration.show { display: block; }
+    .cake-wish-text {
+      display: none; font-size: 20px; color: var(--blush);
+      margin-top: 15px; font-style: italic; max-width: 500px; line-height: 1.8;
+    }
+    .cake-wish-text.show { display: block; animation: fadeInUp .8s ease .5s both; }
+
+    @media (max-width: 480px) {
+      .cake-scene { transform: scale(.8); }
+      .candle-container { gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cake-page">
+    <div class="section-header">
+      <div class="ornament">✦ ✦ ✦</div>
+      <h2>Blow Out the Candles</h2>
+      <p>Make a wish and tap each flame</p>
+    </div>
+
+    <div class="cake-scene">
+      <div class="cake-base"></div>
+      <div class="cake-mid"></div>
+      <div class="cake-top"></div>
+      <div class="cake-frosting"></div>
+      <div class="candle-container" id="candleContainer"></div>
+      <div id="sprinkleBox" style="position:absolute;inset:0;pointer-events:none;"></div>
+    </div>
+
+    <div class="cake-instruction" id="cakeInstruction">🕯️ Tap each candle to blow it out! 🕯️</div>
+    <div class="cake-celebration" id="cakeCelebration">✨ Happy Birthday! ✨</div>
+    <div class="cake-wish-text" id="cakeWishText">May all your dreams come true, dear sister. This cake is baked with all the love in the world, just for you. 🎂💖</div>
+    <button class="gold-btn" style="margin-top:20px;display:none" id="cakeResetBtn" onclick="resetCake()">🔄 Light Candles Again</button>
+  </div>
+
+  <script src="../js/engine.js"></script>
+  <script>
+    const NUM_CANDLES = 7;
+    let litCount = NUM_CANDLES;
+
+    function initCake() {
+      const container = document.getElementById('candleContainer');
+      container.innerHTML = '';
+      litCount = NUM_CANDLES;
+      document.getElementById('cakeInstruction').style.display = '';
+      document.getElementById('cakeCelebration').classList.remove('show');
+      document.getElementById('cakeWishText').classList.remove('show');
+      document.getElementById('cakeResetBtn').style.display = 'none';
+
+      for (let i = 0; i < NUM_CANDLES; i++) {
+        const c = document.createElement('div');
+        c.className = 'candle';
+        c.innerHTML = `<div class="candle-flame" id="flame${i}"></div><div class="candle-stick"></div>`;
+        c.onclick = () => blowCandle(i);
+        container.appendChild(c);
+      }
+
+      // Sprinkles
+      const box = document.getElementById('sprinkleBox');
+      box.innerHTML = '';
+      const colors = ['#ff6b6b','#48dbfb','#feca57','#ff9ff3','#54a0ff','#5f27cd','#01a3a4','#f368e0'];
+      for (let i = 0; i < 20; i++) {
+        const s = document.createElement('div');
+        s.className = 'sprinkle';
+        s.style.cssText = `background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*220+10}px;top:${Math.random()*120+10}px;transform:rotate(${Math.random()*360}deg);`;
+        box.appendChild(s);
+      }
+    }
+
+    function blowCandle(i) {
+      const flame = document.getElementById('flame' + i);
+      if (!flame || flame.classList.contains('out')) return;
+      flame.classList.add('out');
+      litCount--;
+      if (litCount === 0) {
+        document.getElementById('cakeInstruction').style.display = 'none';
+        document.getElementById('cakeCelebration').classList.add('show');
+        document.getElementById('cakeWishText').classList.add('show');
+        document.getElementById('cakeResetBtn').style.display = '';
+        parent.ConfettiEngine.launch();
+      }
+    }
+
+    function resetCake() { initCake(); }
+    initCake();
+  </script>
+</body>
+</html>

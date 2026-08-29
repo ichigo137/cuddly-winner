@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Playlist</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    body { background: var(--midnight); }
+    .playlist-page { padding: 100px 20px 60px; max-width: 650px; margin: 0 auto; }
+
+    .viz-box {
+      width: 100%; height: 100px;
+      background: linear-gradient(145deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border: 1px solid rgba(212,168,83,.15); border-radius: 16px;
+      margin-bottom: 30px; overflow: hidden;
+    }
+    #vizCanvas { width: 100%; height: 100%; display: block; }
+
+    .pl-item {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 20px;
+      background: linear-gradient(145deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(212,168,83,.1); border-radius: 14px;
+      margin-bottom: 12px; cursor: pointer; transition: all .3s;
+    }
+    .pl-item:hover { border-color: var(--gold); background: rgba(212,168,83,.08); transform: translateX(5px); }
+    .pl-item.playing { border-color: var(--rose); background: rgba(232,160,191,.08); }
+    .pl-num { font-family: 'Dancing Script', cursive; font-size: 20px; color: var(--gold); min-width: 30px; }
+    .pl-info { flex: 1; }
+    .pl-info h4 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--gold-light); }
+    .pl-info p { font-size: 14px; color: rgba(252,228,236,.6); margin-top: 2px; }
+    .pl-eq { display: flex; gap: 3px; align-items: flex-end; height: 20px; }
+    .pl-eq span { width: 4px; background: var(--rose); border-radius: 2px; }
+    .pl-item.playing .pl-eq span { animation: eqBounce 1s ease-in-out infinite; }
+    .pl-eq span:nth-child(1) { height: 8px; animation-delay: 0s; }
+    .pl-eq span:nth-child(2) { height: 14px; animation-delay: .15s; }
+    .pl-eq span:nth-child(3) { height: 10px; animation-delay: .3s; }
+    .pl-eq span:nth-child(4) { height: 16px; animation-delay: .45s; }
+    @keyframes eqBounce { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.4)} }
+
+    .playlist-note { text-align: center; font-family: 'Dancing Script', cursive; color: var(--lavender); margin-top: 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="playlist-page">
+    <div class="section-header">
+      <div class="ornament">✦ ✦ ✦</div>
+      <h2>Birthday Playlist</h2>
+      <p>Songs to celebrate your special day</p>
+    </div>
+
+    <div class="viz-box"><canvas id="vizCanvas"></canvas></div>
+    <div id="plItems"></div>
+    <p class="playlist-note">🎵 Click a song to "play" it and see the visualizer dance! 🎵</p>
+  </div>
+
+  <script src="../js/engine.js"></script>
+  <script>
+    const songs = [
+      { title: 'Happy Birthday', artist: 'Traditional', color: '#ff6b6b' },
+      { title: 'Birthday', artist: 'The Beatles', color: '#feca57' },
+      { title: 'In My Life', artist: 'The Beatles', color: '#48dbfb' },
+      { title: 'Lean on Me', artist: 'Bill Withers', color: '#ff9ff3' },
+      { title: 'What a Wonderful World', artist: 'Louis Armstrong', color: '#54a0ff' },
+      { title: 'You Are the Sunshine of My Life', artist: 'Stevie Wonder', color: '#f368e0' },
+      { title: 'Count on Me', artist: 'Bruno Mars', color: '#01a3a4' },
+      { title: 'Best Day of My Life', artist: 'American Authors', color: '#5f27cd' },
+    ];
+
+    const container = document.getElementById('plItems');
+    songs.forEach((song, i) => {
+      const item = document.createElement('div');
+      item.className = 'pl-item';
+      item.innerHTML = `<div class="pl-num">${i + 1}</div><div class="pl-info"><h4>${song.title}</h4><p>${song.artist}</p></div><div class="pl-eq"><span></span><span></span><span></span><span></span></div>`;
+      item.onclick = () => {
+        document.querySelectorAll('.pl-item').forEach(p => p.classList.remove('playing'));
+        item.classList.add('playing');
+        startViz(song.color);
+      };
+      container.appendChild(item);
+    });
+
+    let vizAF = null;
+    function startViz(color) {
+      const canvas = document.getElementById('vizCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = 100;
+      if (vizAF) cancelAnimationFrame(vizAF);
+      const bars = 40;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const barW = canvas.width / bars - 2;
+        for (let i = 0; i < bars; i++) {
+          const h = Math.random() * 80 + 10;
+          ctx.fillStyle = color;
+          ctx.globalAlpha = .6 + Math.random() * .4;
+          ctx.fillRect(i * (barW + 2), canvas.height - h, barW, h);
+          ctx.beginPath();
+          ctx.arc(i * (barW + 2) + barW / 2, canvas.height - h, barW / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        vizAF = requestAnimationFrame(draw);
+      }
+      draw();
+    }
+  </script>
+</body>
+</html>

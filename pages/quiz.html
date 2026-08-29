@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Quiz</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    body { background: var(--midnight); }
+    .quiz-page { padding: 100px 20px 60px; max-width: 750px; margin: 0 auto; }
+    .quiz-progress { width: 100%; height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; margin-bottom: 30px; overflow: hidden; }
+    .quiz-progress-bar { height: 100%; background: linear-gradient(90deg, var(--gold), var(--rose)); border-radius: 3px; transition: width .5s ease; }
+    .quiz-card {
+      background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid rgba(212,168,83,.2); border-radius: 20px;
+      padding: 40px; margin-bottom: 30px; text-align: center;
+    }
+    .quiz-q-num { font-family: 'Dancing Script', cursive; font-size: 16px; color: var(--lavender); margin-bottom: 10px; }
+    .quiz-q-text { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold-light); line-height: 1.6; }
+    .quiz-options { display: grid; gap: 15px; max-width: 700px; margin: 0 auto; }
+    .quiz-opt {
+      padding: 18px 24px;
+      background: linear-gradient(145deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(212,168,83,.15); border-radius: 14px;
+      color: var(--blush); font-size: 18px; cursor: pointer;
+      transition: all .3s; text-align: left;
+      font-family: 'Cormorant Garamond', serif;
+    }
+    .quiz-opt:hover { border-color: var(--gold); background: rgba(212,168,83,.1); transform: translateX(5px); }
+    .quiz-opt.correct { border-color: #4ade80; background: rgba(74,222,128,.15); color: #4ade80; animation: correctPop .5s; }
+    .quiz-opt.wrong { border-color: #f87171; background: rgba(248,113,113,.15); color: #f87171; }
+    .quiz-opt.disabled { pointer-events: none; opacity: .6; }
+    @keyframes correctPop { 0%{transform:scale(1)} 50%{transform:scale(1.03)} 100%{transform:scale(1)} }
+    .quiz-result { text-align: center; padding: 40px; }
+    .quiz-score { font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 900; background: linear-gradient(135deg, var(--gold-light), var(--rose)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .quiz-score-label { font-family: 'Great Vibes', cursive; font-size: 28px; color: var(--gold-light); margin-top: 10px; }
+    .quiz-verdict { font-size: 20px; color: var(--blush); margin-top: 20px; line-height: 1.8; max-width: 500px; margin-left: auto; margin-right: auto; }
+  </style>
+</head>
+<body>
+  <div class="quiz-page">
+    <div class="section-header">
+      <div class="ornament">✦ ✦ ✦</div>
+      <h2>How Well Do You Know Me?</h2>
+      <p>A fun quiz about our bond</p>
+    </div>
+    <div id="quizContainer"></div>
+  </div>
+
+  <script src="../js/engine.js"></script>
+  <script>
+    const quizQuestions = [
+      { q: "What's the one thing that always makes us laugh together?", opts: ["Inside jokes", "Being serious", "Math problems", "Grocery lists"], correct: 0 },
+      { q: "Which season fits my sister's personality best?", opts: ["Winter — cool and mysterious", "Spring — warm and blooming", "Summer — bright and full of energy", "Autumn — cozy and golden"], correct: 1 },
+      { q: "What's the best gift my sister has ever received?", opts: ["A car", "The love of family", "A phone", "Money"], correct: 1 },
+      { q: "If my sister were a superhero, what would her power be?", opts: ["Super speed", "Reading minds", "Making everyone feel loved", "Flying"], correct: 2 },
+      { q: "What's my sister's superpower in real life?", opts: ["Cooking magic", "Turning bad days into good ones", "Sleeping anywhere", "Finding lost items"], correct: 1 },
+      { q: "What would I never be able to repay my sister for?", opts: ["Lending me money", "Her constant support and love", "Doing my homework", "Buying me food"], correct: 1 },
+      { q: "What's the one word that perfectly describes my sister?", opts: ["Ordinary", "Extraordinary", "Average", "Typical"], correct: 1 },
+      { q: "What do I wish for my sister every single day?", opts: ["More money", "Happiness and good health", "A bigger house", "A faster car"], correct: 1 },
+    ];
+
+    let quizIdx = 0, quizScore = 0, quizAnswered = false;
+
+    function renderQuestion() {
+      const c = document.getElementById('quizContainer');
+      if (quizIdx >= quizQuestions.length) { renderResult(); return; }
+      const q = quizQuestions[quizIdx];
+      const pct = (quizIdx / quizQuestions.length) * 100;
+      c.innerHTML = `
+        <div class="quiz-progress"><div class="quiz-progress-bar" style="width:${pct}%"></div></div>
+        <div class="quiz-card">
+          <div class="quiz-q-num">Question ${quizIdx + 1} of ${quizQuestions.length}</div>
+          <div class="quiz-q-text">${q.q}</div>
+        </div>
+        <div class="quiz-options">${q.opts.map((o, i) => `<div class="quiz-opt" onclick="answerQuiz(${i})">${o}</div>`).join('')}</div>
+      `;
+      quizAnswered = false;
+    }
+
+    function answerQuiz(idx) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+      const q = quizQuestions[quizIdx];
+      const opts = document.querySelectorAll('.quiz-opt');
+      opts.forEach((o, i) => {
+        o.classList.add('disabled');
+        if (i === q.correct) o.classList.add('correct');
+        if (i === idx && i !== q.correct) o.classList.add('wrong');
+      });
+      if (idx === q.correct) quizScore++;
+      setTimeout(() => { quizIdx++; renderQuestion(); }, 1200);
+    }
+
+    function renderResult() {
+      const c = document.getElementById('quizContainer');
+      const pct = Math.round((quizScore / quizQuestions.length) * 100);
+      let verdict;
+      if (pct >= 90) verdict = "🌟 You know your sister inside and out! She's lucky to have someone who cherishes her this much. Your bond is truly magical!";
+      else if (pct >= 70) verdict = "💕 You know your sister really well! You pay attention to the little things that make her special. Keep building those beautiful memories together!";
+      else if (pct >= 50) verdict = "🦋 You have a lovely connection with your sister! There's always more to learn about the people we love. Maybe ask her some of these questions!";
+      else verdict = "🌸 This is a reminder to spend more quality time with your sister! Every moment together is a chance to learn something new about her.";
+      c.innerHTML = `
+        <div class="quiz-result">
+          <div class="quiz-score">${quizScore}/${quizQuestions.length}</div>
+          <div class="quiz-score-label">You Scored ${pct}%</div>
+          <div class="quiz-verdict">${verdict}</div>
+          <button class="gold-btn" style="margin-top:30px;" onclick="quizIdx=0;quizScore=0;renderQuestion()">🔄 Play Again</button>
+        </div>
+      `;
+      if (pct >= 70) setTimeout(() => parent.ConfettiEngine.launch(), 500);
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>

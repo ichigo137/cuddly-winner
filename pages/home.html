@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    body { background: var(--midnight); overflow-x: hidden; }
+
+    /* HERO */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 40px 20px;
+      background: radial-gradient(ellipse at center, rgba(107,33,66,.4) 0%, var(--midnight) 70%);
+      position: relative;
+    }
+    .hero-ornament { font-size: 40px; color: var(--gold); opacity: .6; letter-spacing: 20px; margin-bottom: 20px; }
+    .hero-badge {
+      display: inline-block; padding: 8px 30px;
+      border: 1px solid var(--gold); border-radius: 50px;
+      font-family: 'Dancing Script', cursive; font-size: 18px;
+      color: var(--gold-light); letter-spacing: 3px;
+      text-transform: uppercase; margin-bottom: 30px;
+      animation: fadeInUp 1s ease .5s both;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(48px, 10vw, 120px);
+      font-weight: 900; line-height: 1.1; margin-bottom: 10px;
+      animation: fadeInUp 1.2s ease .8s both;
+    }
+    .hero-title .line1 {
+      display: block;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--rose));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-title .line2 {
+      display: block; font-family: 'Great Vibes', cursive; font-size: .7em;
+      background: linear-gradient(135deg, var(--rose), var(--lavender), var(--rose-deep));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: clamp(16px, 2.5vw, 24px); font-weight: 300; font-style: italic;
+      color: var(--blush); margin-top: 20px; max-width: 600px; line-height: 1.8;
+      animation: fadeInUp 1s ease 1.4s both;
+    }
+    .hero-date {
+      font-family: 'Dancing Script', cursive; font-size: 22px;
+      color: var(--gold); margin-top: 30px; letter-spacing: 4px;
+      animation: fadeInUp 1s ease 1.7s both;
+    }
+
+    /* LETTER */
+    #letter-section {
+      background: linear-gradient(180deg, var(--midnight) 0%, rgba(107,33,66,.15) 50%, var(--midnight) 100%);
+      padding: 100px 20px;
+    }
+    .letter-container { max-width: 800px; margin: 0 auto; }
+    .letter-paper {
+      background: linear-gradient(145deg, rgba(253,246,240,.08), rgba(253,246,240,.03));
+      border: 1px solid rgba(212,168,83,.3); border-radius: 20px;
+      padding: 60px 50px; position: relative; backdrop-filter: blur(10px); overflow: hidden;
+    }
+    .letter-paper::before {
+      content: ''; position: absolute; inset: -2px;
+      background: linear-gradient(45deg, var(--gold), transparent, var(--rose), transparent, var(--gold));
+      border-radius: 22px; z-index: -1; opacity: .4;
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%, 100% { opacity: .3; }
+      50% { opacity: .6; }
+    }
+    .letter-greeting { font-family: 'Great Vibes', cursive; font-size: 36px; color: var(--gold-light); margin-bottom: 30px; }
+    .letter-body { font-size: 20px; line-height: 2; color: var(--blush); font-weight: 300; }
+    .letter-body p { margin-bottom: 20px; text-indent: 40px; }
+    .letter-body .highlight { color: var(--gold-light); font-weight: 600; font-style: italic; }
+    .letter-signature { text-align: right; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(212,168,83,.2); }
+    .letter-signature .name { font-family: 'Great Vibes', cursive; font-size: 32px; color: var(--rose); }
+    .letter-signature .from { font-family: 'Dancing Script', cursive; font-size: 16px; color: var(--gold-light); margin-top: 5px; }
+    .wax-seal {
+      position: absolute; bottom: -30px; right: 40px;
+      width: 80px; height: 80px;
+      background: radial-gradient(circle, var(--rose-deep), #8b1a3a);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 30px; box-shadow: 0 4px 20px rgba(201,75,124,.5); transform: rotate(-15deg);
+    }
+
+    /* QUALITIES */
+    #qualities-section {
+      background: radial-gradient(ellipse at 20% 50%, rgba(201,177,255,.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 50%, rgba(232,160,191,.08) 0%, transparent 50%),
+                  var(--midnight);
+      padding: 100px 20px;
+    }
+    .qualities-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px; max-width: 1100px; margin: 0 auto;
+    }
+    .quality-card {
+      background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid rgba(212,168,83,.15); border-radius: 20px;
+      padding: 40px 30px; text-align: center;
+      transition: all .5s cubic-bezier(.23,1,.32,1);
+      position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(40px);
+    }
+    .quality-card.visible { opacity: 1; transform: translateY(0); }
+    .quality-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--rose), var(--lavender));
+      transform: scaleX(0); transition: transform .5s;
+    }
+    .quality-card:hover::before { transform: scaleX(1); }
+    .quality-card:hover {
+      transform: translateY(-10px) !important;
+      border-color: rgba(212,168,83,.4);
+      box-shadow: 0 20px 60px rgba(232,160,191,.15);
+    }
+    .quality-icon { font-size: 50px; margin-bottom: 20px; display: block; animation: float 3s ease-in-out infinite; }
+    .quality-card:nth-child(2) .quality-icon { animation-delay: .3s; }
+    .quality-card:nth-child(3) .quality-icon { animation-delay: .6s; }
+    .quality-card:nth-child(4) .quality-icon { animation-delay: .9s; }
+    .quality-card:nth-child(5) .quality-icon { animation-delay: 1.2s; }
+    .quality-card:nth-child(6) .quality-icon { animation-delay: 1.5s; }
+    .quality-card h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--gold-light); margin-bottom: 12px; }
+    .quality-card p { font-size: 16px; line-height: 1.8; color: rgba(252,228,236,.8); font-weight: 300; }
+
+    /* TIMELINE */
+    #timeline-section { background: linear-gradient(180deg, var(--midnight), rgba(26,10,30,.95)); padding: 100px 20px; }
+    .timeline-container { max-width: 900px; margin: 0 auto; position: relative; }
+    .timeline-line {
+      position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(180deg, transparent, var(--gold), var(--rose), var(--gold), transparent);
+      transform: translateX(-50%);
+    }
+    .timeline-item {
+      display: flex; align-items: center; margin-bottom: 60px; position: relative;
+      opacity: 0; transform: translateY(30px);
+    }
+    .timeline-item.visible { opacity: 1; transform: translateY(0); transition: all .8s cubic-bezier(.23,1,.32,1); }
+    .timeline-item:nth-child(odd) { flex-direction: row; }
+    .timeline-item:nth-child(even) { flex-direction: row-reverse; }
+    .timeline-content {
+      width: 42%; padding: 30px;
+      background: linear-gradient(145deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(212,168,83,.2); border-radius: 16px; transition: all .4s;
+    }
+    .timeline-content:hover { border-color: var(--gold); box-shadow: 0 10px 40px rgba(212,168,83,.15); }
+    .timeline-dot {
+      width: 20px; height: 20px; background: var(--gold); border-radius: 50%;
+      position: absolute; left: 50%; transform: translateX(-50%);
+      box-shadow: 0 0 20px rgba(212,168,83,.5); z-index: 2;
+    }
+    .timeline-year { font-family: 'Dancing Script', cursive; font-size: 20px; color: var(--gold); margin-bottom: 8px; }
+    .timeline-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--rose); margin-bottom: 8px; }
+    .timeline-desc { font-size: 16px; color: rgba(252,228,236,.7); line-height: 1.7; font-weight: 300; }
+
+    /* WISHES */
+    #wishes-section { background: radial-gradient(ellipse at 50% 50%, rgba(212,168,83,.1) 0%, var(--midnight) 70%); padding: 100px 20px; }
+    .wishes-container { max-width: 1000px; margin: 0 auto; }
+    .wish-card {
+      background: linear-gradient(145deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+      border: 1px solid rgba(212,168,83,.15); border-radius: 20px;
+      padding: 40px; margin-bottom: 30px; position: relative; overflow: hidden;
+      opacity: 0; transform: translateX(-40px);
+      transition: all .8s cubic-bezier(.23,1,.32,1);
+    }
+    .wish-card.visible { opacity: 1; transform: translateX(0); }
+    .wish-card:nth-child(even) { transform: translateX(40px); }
+    .wish-card:nth-child(even).visible { transform: translateX(0); }
+    .wish-quote { font-size: 50px; color: var(--gold); opacity: .3; font-family: serif; position: absolute; top: 10px; left: 20px; }
+    .wish-text { font-size: 20px; line-height: 1.9; color: var(--blush); font-style: italic; font-weight: 300; padding-left: 30px; }
+    .wish-author { font-family: 'Dancing Script', cursive; font-size: 18px; color: var(--gold-light); text-align: right; margin-top: 20px; }
+
+    /* GALLERY */
+    #gallery-section { background: linear-gradient(180deg, var(--midnight), rgba(107,33,66,.1), var(--midnight)); padding: 100px 20px; }
+    .gallery-grid { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .gallery-item {
+      aspect-ratio: 1; border-radius: 16px; overflow: hidden; position: relative; cursor: pointer;
+      opacity: 0; transform: scale(.9); transition: all .6s cubic-bezier(.23,1,.32,1);
+    }
+    .gallery-item.visible { opacity: 1; transform: scale(1); }
+    .gallery-placeholder {
+      width: 100%; height: 100%; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 60px;
+      border: 2px dashed rgba(212,168,83,.3); transition: all .5s; position: relative;
+    }
+    .gallery-item:nth-child(odd) .gallery-placeholder { background: linear-gradient(135deg, rgba(232,160,191,.15), rgba(201,177,255,.1)); }
+    .gallery-item:nth-child(even) .gallery-placeholder { background: linear-gradient(135deg, rgba(212,168,83,.15), rgba(232,160,191,.1)); }
+    .gallery-placeholder .label { font-family: 'Dancing Script', cursive; font-size: 16px; color: var(--gold-light); margin-top: 10px; }
+    .gallery-item:hover .gallery-placeholder { border-color: var(--gold); transform: scale(1.05); box-shadow: 0 20px 60px rgba(212,168,83,.2); }
+
+    /* FINALE */
+    #finale-section {
+      min-height: 80vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; padding: 60px 20px;
+      background: radial-gradient(ellipse at center, rgba(201,75,124,.15) 0%, var(--midnight) 60%);
+    }
+    .finale-crown { font-size: 80px; margin-bottom: 20px; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 0 20px rgba(212,168,83,.5)); }
+    .finale-title {
+      font-family: 'Great Vibes', cursive; font-size: clamp(36px,7vw,72px);
+      background: linear-gradient(135deg, var(--gold-light), var(--rose), var(--lavender));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 20px;
+    }
+    .finale-text { font-size: clamp(18px,2.5vw,24px); color: var(--blush); max-width: 700px; line-height: 2; font-weight: 300; margin-bottom: 40px; font-style: italic; }
+    .finale-hearts { font-size: 50px; letter-spacing: 20px; animation: heartbeat 1.5s ease-in-out infinite; }
+
+    @media (max-width: 768px) {
+      .letter-paper { padding: 30px 20px; }
+      .timeline-line { left: 20px; }
+      .timeline-item, .timeline-item:nth-child(even) { flex-direction: row; padding-left: 50px; }
+      .timeline-content { width: 100%; }
+      .timeline-dot { left: 20px; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .gallery-grid { grid-template-columns: 1fr; max-width: 300px; }
+      .qualities-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-ornament">✦ ✦ ✦ ✦ ✦</div>
+    <div class="hero-badge">A Celebration Of</div>
+    <h1 class="hero-title">
+      <span class="line1">Happy Birthday</span>
+      <span class="line2">Dear Sister</span>
+    </h1>
+    <p class="hero-subtitle">Today the world became a more beautiful place — because it's the day you were born. This celebration is crafted with all the love in my heart, just for you.</p>
+    <div class="hero-date">✨ Today &amp; Always ✨</div>
+    <div class="hero-ornament" style="margin-top:20px;margin-bottom:0;">✦ ✦ ✦ ✦ ✦</div>
+  </section>
+
+  <!-- LETTER -->
+  <section id="letter-section">
+    <div class="section-header reveal"><div class="ornament">✦ ✦ ✦</div><h2>A Letter From My Heart</h2><p>Words that come from the soul</p></div>
+    <div class="letter-container reveal">
+      <div class="letter-paper">
+        <div class="letter-greeting">My Dearest Sister,</div>
+        <div class="letter-body">
+          <p>There are moments in life when words feel too small to carry the weight of what we feel. Today is one of those moments. As I sit down to write to you, my heart is overflowing with <span class="highlight">gratitude, love, and a thousand beautiful memories</span> that we've woven together over the years.</p>
+          <p>You have been my <span class="highlight">first friend, my safe harbor, my guiding star</span>. Through every storm, you were the lighthouse. Through every celebration, you were the one who made it shine even brighter. You taught me what it means to love without condition, to give without expectation, and to smile even when the world feels heavy.</p>
+          <p>I remember your laughter — it could fill an entire room with warmth. I remember your hugs — they could heal wounds that no medicine ever could. I remember your patience, your kindness, and the way you always, <span class="highlight">always</span> believed in me, even when I didn't believe in myself.</p>
+          <p>On this extraordinary day, I want you to know: <span class="highlight">you are the most incredible person I have ever known</span>. The world is brighter because you're in it. My life is richer because you're in it. And my heart is fuller because of you.</p>
+          <p>May this new year of your life bring you <span class="highlight">all the joy, all the magic, and all the love</span> that you so deeply deserve. You are not just my sister — you are a blessing, a miracle, and the most beautiful soul I know.</p>
+        </div>
+        <div class="letter-signature"><div class="name">With All My Love</div><div class="from">Your Forever-Grateful Sibling 💕</div></div>
+        <div class="wax-seal">👑</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUALITIES -->
+  <section id="qualities-section">
+    <div class="section-header reveal"><div class="ornament">✦ ✦ ✦</div><h2>You Are Everything</h2><p>What makes you truly extraordinary</p></div>
+    <div class="qualities-grid">
+      <div class="quality-card"><span class="quality-icon">🌟</span><h3>A Guiding Light</h3><p>You illuminate the path for everyone around you. Your wisdom and warmth are a compass that always points toward what matters most.</p></div>
+      <div class="quality-card"><span class="quality-icon">🦋</span><h3>Grace Personified</h3><p>You carry yourself with an elegance that goes beyond appearances — it's in your words, your actions, and the way you touch every life you enter.</p></div>
+      <div class="quality-card"><span class="quality-icon">💪</span><h3>Unshakeable Strength</h3><p>Life has tested you in ways most cannot imagine, yet you rise every single time. Your resilience is nothing short of heroic.</p></div>
+      <div class="quality-card"><span class="quality-icon">💕</span><h3>Infinite Love</h3><p>Your heart knows no bounds. You love fiercely, deeply, and completely. To be loved by you is one of the greatest gifts anyone can receive.</p></div>
+      <div class="quality-card"><span class="quality-icon">🌸</span><h3>A Beautiful Soul</h3><p>Inside and out, you radiate beauty. Your kindness, your laughter, your spirit — they paint the world in colors of joy.</p></div>
+      <div class="quality-card"><span class="quality-icon">✨</span><h3>Simply Magic</h3><p>There's something magical about you that defies explanation. You make ordinary moments extraordinary just by being you.</p></div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="timeline-section">
+    <div class="section-header reveal"><div class="ornament">✦ ✦ ✦</div><h2>Our Beautiful Journey</h2><p>Moments that made us who we are</p></div>
+    <div class="timeline-container">
+      <div class="timeline-line"></div>
+      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">The Beginning</div><div class="timeline-title">The Day You Came Into This World</div><div class="timeline-desc">You arrived like a ray of sunshine, filling our lives with a light that has never dimmed. From your very first breath, you made the world a better place.</div></div><div class="timeline-dot"></div></div>
+      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">Childhood Days</div><div class="timeline-title">Adventures &amp; Innocence</div><div class="timeline-desc">From building blanket forts to chasing butterflies, every moment with you was an adventure. You made childhood a fairy tale I'll never forget.</div></div><div class="timeline-dot"></div></div>
+      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">Growing Up</div><div class="timeline-title">You Became My Hero</div><div class="timeline-desc">As we grew older, I watched you transform into the most remarkable person. You faced challenges with courage and emerged stronger every time.</div></div><div class="timeline-dot"></div></div>
+      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">Today</div><div class="timeline-title">Celebrating YOU</div><div class="timeline-desc">Today we celebrate not just a birthday, but the gift of having you in our lives. Every year with you is a treasure beyond measure.</div></div><div class="timeline-dot"></div></div>
+      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">Forever</div><div class="timeline-title">A Bond That Never Breaks</div><div class="timeline-desc">No matter where life takes us, you will always be my sister, my friend, my heart. This bond is eternal, unbreakable, and absolutely beautiful.</div></div><div class="timeline-dot"></div></div>
+    </div>
+  </section>
+
+  <!-- WISHES -->
+  <section id="wishes-section">
+    <div class="section-header reveal"><div class="ornament">✦ ✦ ✦</div><h2>Birthday Wishes For You</h2><p>From the deepest corners of my heart</p></div>
+    <div class="wishes-container">
+      <div class="wish-card"><div class="wish-quote">"</div><div class="wish-text">May your birthday be as beautiful as the smile you bring to everyone around you. May every wish you've ever whispered to the stars finally come true today. You deserve nothing less than <strong style="color:var(--gold-light)">absolute magic</strong>.</div><div class="wish-author">— With all my heart</div></div>
+      <div class="wish-card"><div class="wish-quote">"</div><div class="wish-text">I wish you mornings that start with sunshine, afternoons that dance with laughter, and evenings that wrap you in peace. I wish you dreams so big they scare you, and the courage to chase every single one.</div><div class="wish-author">— Your loving sibling</div></div>
+      <div class="wish-card"><div class="wish-quote">"</div><div class="wish-text">May this year bring you <strong style="color:var(--gold-light)">adventures</strong> that thrill your soul, <strong style="color:var(--gold-light)">love</strong> that fills every corner of your heart, and <strong style="color:var(--gold-light)">moments</strong> so precious they become your most treasured memories.</div><div class="wish-author">— Forever and always</div></div>
+      <div class="wish-card"><div class="wish-quote">"</div><div class="wish-text">You taught me that family isn't just about blood — it's about the souls that choose each other. Thank you for choosing me, every single day. Happy Birthday to the most extraordinary soul I know. <strong style="color:var(--rose)">May your light never dim.</strong></div><div class="wish-author">— With endless love 💖</div></div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section id="gallery-section">
+    <div class="section-header reveal"><div class="ornament">✦ ✦ ✦</div><h2>Cherished Moments</h2><p>A gallery of our most precious memories</p></div>
+    <div class="gallery-grid">
+      <div class="gallery-item"><div class="gallery-placeholder">📸<span class="label">Add Your Photo</span></div></div>
+      <div class="gallery-item"><div class="gallery-placeholder">📸<span class="label">Add Your Photo</span></div></div>
+      <div class="gallery-item"><div class="gallery-placeholder">📸<span class="label">Add Your Photo</span></div></div>
+      <div class="gallery-item"><div class="gallery-placeholder">📸<span class="label">Add Your Photo</span></div></div>
+      <div class="gallery-item"><div class="gallery-placeholder">📸<span class="label">Add Your Photo</span></div></div>
+      <div class="gallery-item"><div class="gallery-placeholder">📸<span class="label">Add Your Photo</span></div></div>
+    </div>
+  </section>
+
+  <!-- FINALE -->
+  <section id="finale-section">
+    <div class="finale-crown">👑</div>
+    <h2 class="finale-title">Happy Birthday, My Queen</h2>
+    <p class="finale-text">You are the most beautiful chapter in the story of my life. Today, tomorrow, and for all eternity — I celebrate you. May your heart always know how deeply, how truly, how endlessly it is loved.</p>
+    <div class="finale-hearts">💖 💝 💕 💗 💓</div>
+    <button class="gold-btn" style="margin-top:30px;" onclick="parent.ConfettiEngine.launch()">🎉 Celebrate! 🎉</button>
+  </section>
+
+  <div style="height:60px;"></div>
+
+  <script src="../js/engine.js"></script>
+</body>
+</html>

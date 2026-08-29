@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fortune Cookie</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    body { background: var(--midnight); }
+    .fortune-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 100px 20px 60px; }
+
+    /* Cookie */
+    .cookie-wrap { position: relative; width: 200px; height: 140px; margin: 40px auto; cursor: pointer; transition: transform .3s; }
+    .cookie-wrap:hover { transform: scale(1.1); }
+    .cookie-half {
+      position: absolute; width: 100px; height: 140px;
+      background: radial-gradient(ellipse at 30% 40%, #e8c77a, #c9a14a, #a07830);
+      border-radius: 50%; transition: all .6s cubic-bezier(.23,1,.32,1);
+    }
+    .cookie-half.left { left: 0; transform-origin: right center; }
+    .cookie-half.right { right: 0; transform-origin: left center; }
+    .cookie-half.cracked.left { transform: translateX(-60px) rotate(-20deg); opacity: .7; }
+    .cookie-half.cracked.right { transform: translateX(60px) rotate(20deg); opacity: .7; }
+    .cookie-slip {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px; background: var(--cream);
+      border-radius: 4px; padding: 8px; text-align: center;
+      opacity: 0; transition: all .6s; z-index: 3;
+      box-shadow: 0 4px 15px rgba(0,0,0,.2);
+    }
+    .cookie-slip.show { opacity: 1; width: 280px; }
+    .cookie-slip p { font-family: 'Dancing Script', cursive; font-size: 15px; color: var(--burgundy); line-height: 1.5; }
+    .fortune-text {
+      max-width: 500px; text-align: center; font-size: 22px;
+      color: var(--blush); line-height: 1.8; margin-top: 30px;
+      min-height: 60px; font-style: italic;
+    }
+    .fortune-instruction {
+      font-family: 'Dancing Script', cursive;
+      font-size: 20px; color: var(--gold-light);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .fortune-reset { margin-top: 20px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="fortune-page">
+    <div class="section-header">
+      <div class="ornament">✦ ✦ ✦</div>
+      <h2>Birthday Fortune Cookie</h2>
+      <p>Click the cookie to reveal your fortune</p>
+    </div>
+
+    <div class="cookie-wrap" id="cookieWrap" onclick="crackCookie()">
+      <div class="cookie-half left"></div>
+      <div class="cookie-half right"></div>
+      <div class="cookie-slip"><p id="slipText"></p></div>
+    </div>
+
+    <div class="fortune-instruction" id="fortuneInstr">🥠 Tap the cookie! 🥠</div>
+    <div class="fortune-text" id="fortuneText"></div>
+    <button class="gold-btn fortune-reset" id="fortuneReset" onclick="resetCookie()">🥠 Another Cookie</button>
+  </div>
+
+  <script src="../js/engine.js"></script>
+  <script>
+    const fortunes = [
+      "🌟 Your sister's smile is the brightest light in your universe.",
+      "🦋 A beautiful surprise is heading your way this year!",
+      "💕 The love you give comes back to you tenfold.",
+      "✨ You are destined for extraordinary things.",
+      "🌸 This year will bring more joy than you ever imagined.",
+      "🎯 Your dreams are closer than you think — keep believing!",
+      "💫 Someone special is thinking of you right now.",
+      "🌈 After every storm, a rainbow of blessings awaits you.",
+      "🦋 Transform your fears into wings, and you'll fly higher than ever.",
+      "💖 The world needs exactly what only you can give.",
+      "🏆 This is YOUR year — claim it with confidence!",
+      "🌺 Kindness you've planted will bloom into a garden of love.",
+      "⭐ You carry the strength of a thousand warriors in your heart.",
+      "🎁 The best gift you can give yourself is self-love.",
+      "🦋 Today is the oldest you've ever been and the youngest you'll ever be — celebrate!",
+    ];
+
+    let cracked = false;
+
+    function crackCookie() {
+      if (cracked) return;
+      cracked = true;
+      document.querySelectorAll('.cookie-half').forEach(h => h.classList.add('cracked'));
+      const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+      document.getElementById('slipText').textContent = fortune;
+      document.getElementById('fortuneText').textContent = fortune;
+      document.querySelector('.cookie-slip').classList.add('show');
+      document.getElementById('fortuneInstr').style.display = 'none';
+      document.getElementById('fortuneReset').style.display = '';
+    }
+
+    function resetCookie() {
+      cracked = false;
+      document.querySelectorAll('.cookie-half').forEach(h => h.classList.remove('cracked'));
+      document.querySelector('.cookie-slip').classList.remove('show');
+      document.getElementById('slipText').textContent = '';
+      document.getElementById('fortuneText').textContent = '';
+      document.getElementById('fortuneInstr').style.display = '';
+      document.getElementById('fortuneReset').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
