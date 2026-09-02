@@ -123,6 +123,59 @@ body {
   transform: translateY(0);
 }
 
+/* ========== PREFERS-REDUCED-MOTION ========== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .gold-btn:hover,
+  .gold-btn:active {
+    transform: none !important;
+  }
+  .quality-card:hover {
+    transform: none !important;
+  }
+  .floating-wish:hover {
+    transform: none !important;
+  }
+  .game-card:hover {
+    transform: none !important;
+  }
+  .slide-btn:hover {
+    transform: none !important;
+  }
+  .pl-item:hover {
+    transform: none !important;
+  }
+  .balloon:hover {
+    transform: none !important;
+  }
+}
+
+/* ========== FOCUS-VISIBLE (KEYBOARD ACCESSIBILITY) ========== */
+.gold-btn:focus-visible,
+.slide-btn:focus-visible,
+.mem-card:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.game-card:focus-visible,
+.quality-card:focus-visible,
+.floating-wish:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.pl-item:focus-visible {
+  outline: 2px solid var(--rose);
+  outline-offset: 2px;
+}
+.wish-heart:focus-visible {
+  outline: 1px solid var(--gold-light);
+  outline-offset: 1px;
+}
+
 /* ========== PAGE WRAPPER ========== */
 .page-content {
   padding: 90px 20px 60px;

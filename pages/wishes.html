@@ -35,7 +35,9 @@
     .floating-wish .wish-heart {
       position: absolute; top: 8px; right: 12px;
       font-size: 14px; cursor: pointer; transition: transform .3s;
+      color: var(--blush);
     }
+    .floating-wish .wish-heart.liked { color: var(--rose-deep); }
     .floating-wish .wish-heart:hover { transform: scale(1.3); }
     .floating-wish .wish-msg { font-size: 16px; color: var(--blush); line-height: 1.6; }
     .floating-wish .wish-from { font-family: 'Dancing Script', cursive; font-size: 14px; color: var(--gold-light); margin-top: 8px; }
@@ -52,7 +54,7 @@
     <div class="wish-form">
       <input type="text" id="wishName" placeholder="Your name..." maxlength="30">
       <textarea id="wishMsg" placeholder="Write a heartfelt wish..." maxlength="200"></textarea>
-      <button onclick="addWish()">💌 Send Wish</button>
+      <button onclick="addWish()" aria-label="Send wish">💌 Send Wish</button>
     </div>
 
     <div class="wish-wall" id="wishWall"></div>
@@ -74,7 +76,15 @@
       wishes.forEach((w, i) => {
         const card = document.createElement('div');
         card.className = 'floating-wish';
-        card.innerHTML = `<div class="wish-heart ${w.liked ? 'liked' : ''}" onclick="likeWish(${i})">❤️ ${w.likes || 0}</div><div class="wish-msg">${w.msg}</div><div class="wish-from">— ${w.name}</div>`;
+        card.innerHTML = `<div class="wish-heart ${w.liked ? 'liked' : ''}" onclick="likeWish(${i})" role="button" tabindex="0" aria-label="Like this wish"><span aria-hidden="true">❤️</span> <span class="wish-likes">${w.likes || 0}</span></div><div class="wish-msg">${w.msg}</div><div class="wish-from">— ${w.name}</div>`;
+        // Keyboard support for wish heart
+        const heart = card.querySelector('.wish-heart');
+        heart.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            likeWish(i);
+          }
+        });
         wall.appendChild(card);
       });
     }

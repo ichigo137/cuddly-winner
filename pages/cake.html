@@ -23,6 +23,7 @@
     .candle-container { position: absolute; bottom: 155px; left: 50%; transform: translateX(-50%); display: flex; gap: 22px; }
     .candle { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform .3s; }
     .candle:hover { transform: scale(1.15); }
+    .candle:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     .candle-stick { width: 8px; height: 40px; background: linear-gradient(180deg, var(--gold-light), var(--gold)); border-radius: 4px; }
     .candle-flame {
       width: 16px; height: 22px;
@@ -53,6 +54,12 @@
     }
     .cake-wish-text.show { display: block; animation: fadeInUp .8s ease .5s both; }
 
+    @media (prefers-reduced-motion: reduce) {
+      .candle:hover { transform: none !important; }
+      .candle-flame { animation: none !important; }
+      .cake-celebration { animation: none !important; }
+    }
+
     @media (max-width: 480px) {
       .cake-scene { transform: scale(.8); }
       .candle-container { gap: 16px; }
@@ -79,7 +86,7 @@
     <div class="cake-instruction" id="cakeInstruction">🕯️ Tap each candle to blow it out! 🕯️</div>
     <div class="cake-celebration" id="cakeCelebration">✨ Happy Birthday! ✨</div>
     <div class="cake-wish-text" id="cakeWishText">May all your dreams come true, dear sister. This cake is baked with all the love in the world, just for you. 🎂💖</div>
-    <button class="gold-btn" style="margin-top:20px;display:none" id="cakeResetBtn" onclick="resetCake()">🔄 Light Candles Again</button>
+    <button class="gold-btn" style="margin-top:20px;display:none" id="cakeResetBtn" onclick="resetCake()" aria-label="Light candles again">🔄 Light Candles Again</button>
   </div>
 
   <script src="../js/engine.js"></script>
@@ -99,8 +106,17 @@
       for (let i = 0; i < NUM_CANDLES; i++) {
         const c = document.createElement('div');
         c.className = 'candle';
+        c.tabIndex = 0;
+        c.setAttribute('role', 'button');
+        c.setAttribute('aria-label', `Candle ${i + 1} of ${NUM_CANDLES} - click to blow out`);
         c.innerHTML = `<div class="candle-flame" id="flame${i}"></div><div class="candle-stick"></div>`;
         c.onclick = () => blowCandle(i);
+        c.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            blowCandle(i);
+          }
+        });
         container.appendChild(c);
       }
 

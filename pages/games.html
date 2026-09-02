@@ -56,9 +56,9 @@
     </div>
     <div id="gamesHub">
       <div class="games-grid">
-        <div class="game-card" onclick="startGame('memory')"><span class="game-card-icon">🃏</span><h3>Memory Match</h3><p>Find all the matching pairs of birthday emojis!</p></div>
-        <div class="game-card" onclick="startGame('catcher')"><span class="game-card-icon">⭐</span><h3>Star Catcher</h3><p>Catch falling stars and avoid the clouds!</p></div>
-        <div class="game-card" onclick="startGame('balloon')"><span class="game-card-icon">🎈</span><h3>Pop the Balloons</h3><p>Pop as many balloons as you can before time runs out!</p></div>
+        <div class="game-card" onclick="startGame('memory')" tabindex="0" role="button" aria-label="Start Memory Match game"><span class="game-card-icon">🃏</span><h3>Memory Match</h3><p>Find all the matching pairs of birthday emojis!</p></div>
+        <div class="game-card" onclick="startGame('catcher')" tabindex="0" role="button" aria-label="Start Star Catcher game"><span class="game-card-icon">⭐</span><h3>Star Catcher</h3><p>Catch falling stars and avoid the clouds!</p></div>
+        <div class="game-card" onclick="startGame('balloon')" tabindex="0" role="button" aria-label="Start Pop the Balloons game"><span class="game-card-icon">🎈</span><h3>Pop the Balloons</h3><p>Pop as many balloons as you can before time runs out!</p></div>
       </div>
     </div>
     <div id="gameArea" style="display:none"></div>
@@ -84,6 +84,17 @@
       document.getElementById('gamesHub').style.display = '';
       document.getElementById('gameArea').style.display = 'none';
     }
+
+    // Keyboard support for game cards (Enter/Space)
+    document.querySelectorAll('.game-card').forEach(card => {
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const game = card.getAttribute('onclick').match(/'(\w+)'/)[1];
+          startGame(game);
+        }
+      });
+    });
 
     /* ===== MEMORY MATCH ===== */
     function initMemory(area) {

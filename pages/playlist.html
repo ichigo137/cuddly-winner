@@ -73,12 +73,21 @@
       const item = document.createElement('div');
       item.className = 'pl-item';
       item.innerHTML = `<div class="pl-num">${i + 1}</div><div class="pl-info"><h4>${song.title}</h4><p>${song.artist}</p></div><div class="pl-eq"><span></span><span></span><span></span><span></span></div>`;
+      item.tabIndex = 0;
+      item.setAttribute('role', 'button');
+      item.setAttribute('aria-label', `Play "${song.title}" by ${song.artist}`);
       item.onclick = () => {
         document.querySelectorAll('.pl-item').forEach(p => p.classList.remove('playing'));
         item.classList.add('playing');
         startViz(song.color);
       };
       container.appendChild(item);
+      item.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          item.click();
+        }
+      });
     });
 
     let vizAF = null;

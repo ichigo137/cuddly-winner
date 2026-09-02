@@ -12,6 +12,7 @@
     /* Cookie */
     .cookie-wrap { position: relative; width: 200px; height: 140px; margin: 40px auto; cursor: pointer; transition: transform .3s; }
     .cookie-wrap:hover { transform: scale(1.1); }
+    .cookie-wrap:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     .cookie-half {
       position: absolute; width: 100px; height: 140px;
       background: radial-gradient(ellipse at 30% 40%, #e8c77a, #c9a14a, #a07830);
@@ -42,6 +43,13 @@
       animation: pulse 2s ease-in-out infinite;
     }
     .fortune-reset { margin-top: 20px; display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cookie-wrap:hover { transform: none !important; }
+      .cookie-half { transition: none !important; }
+      .cookie-slip { transition: none !important; }
+      .fortune-instruction { animation: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -52,7 +60,7 @@
       <p>Click the cookie to reveal your fortune</p>
     </div>
 
-    <div class="cookie-wrap" id="cookieWrap" onclick="crackCookie()">
+    <div class="cookie-wrap" id="cookieWrap" onclick="crackCookie()" role="button" tabindex="0" aria-label="Click to crack open the fortune cookie">
       <div class="cookie-half left"></div>
       <div class="cookie-half right"></div>
       <div class="cookie-slip"><p id="slipText"></p></div>
@@ -60,7 +68,7 @@
 
     <div class="fortune-instruction" id="fortuneInstr">🥠 Tap the cookie! 🥠</div>
     <div class="fortune-text" id="fortuneText"></div>
-    <button class="gold-btn fortune-reset" id="fortuneReset" onclick="resetCookie()">🥠 Another Cookie</button>
+    <button class="gold-btn fortune-reset" id="fortuneReset" onclick="resetCookie()" aria-label="Reveal another fortune">🥠 Another Cookie</button>
   </div>
 
   <script src="../js/engine.js"></script>
@@ -84,6 +92,14 @@
     ];
 
     let cracked = false;
+
+    // Keyboard support for cookie
+    document.getElementById('cookieWrap').addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        crackCookie();
+      }
+    });
 
     function crackCookie() {
       if (cracked) return;

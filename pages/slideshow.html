@@ -61,14 +61,15 @@
     </div>
 
     <div class="slide-controls">
-      <button class="slide-btn" onclick="prevSlide()">◀</button>
+      <button class="slide-btn" onclick="prevSlide()" aria-label="Previous slide">◀</button>
       <span class="slide-counter" id="slideCounter">1 / 5</span>
-      <button class="slide-btn" onclick="nextSlide()">▶</button>
+      <button class="slide-btn" onclick="nextSlide()" aria-label="Next slide">▶</button>
     </div>
     <div class="slide-dots" id="slideDots"></div>
-    <button class="gold-btn" style="margin-top:20px;" id="autoBtn" onclick="toggleAuto()">▶ Auto Play</button>
+    <button class="gold-btn" style="margin-top:20px;" id="autoBtn" onclick="toggleAuto()" aria-label="Toggle autoplay">▶ Auto Play</button>
   </div>
 
+  <script src="../js/engine.js"></script>
   <script>
     const slides = document.querySelectorAll('.slide');
     let idx = 0, autoInt = null;
@@ -91,7 +92,16 @@
     slides.forEach((_, i) => {
       const dot = document.createElement('div');
       dot.className = 'slide-dot' + (i === 0 ? ' active' : '');
+      dot.tabIndex = 0;
+      dot.setAttribute('role', 'button');
+      dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
       dot.onclick = () => goTo(i);
+      dot.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          goTo(i);
+        }
+      });
       dotsContainer.appendChild(dot);
     });
   </script>

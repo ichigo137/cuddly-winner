@@ -27,6 +27,11 @@
       font-family: 'Cormorant Garamond', serif;
     }
     .quiz-opt:hover { border-color: var(--gold); background: rgba(212,168,83,.1); transform: translateX(5px); }
+    @media (prefers-reduced-motion: reduce) {
+      .quiz-opt:hover { transform: none !important; }
+      .quiz-opt.correct { animation: none !important; }
+    }
+    .quiz-opt:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
     .quiz-opt.correct { border-color: #4ade80; background: rgba(74,222,128,.15); color: #4ade80; animation: correctPop .5s; }
     .quiz-opt.wrong { border-color: #f87171; background: rgba(248,113,113,.15); color: #f87171; }
     .quiz-opt.disabled { pointer-events: none; opacity: .6; }
@@ -73,10 +78,22 @@
           <div class="quiz-q-num">Question ${quizIdx + 1} of ${quizQuestions.length}</div>
           <div class="quiz-q-text">${q.q}</div>
         </div>
-        <div class="quiz-options">${q.opts.map((o, i) => `<div class="quiz-opt" onclick="answerQuiz(${i})">${o}</div>`).join('')}</div>
+        <div class="quiz-options">${q.opts.map((o, i) => `<div class="quiz-opt" onclick="answerQuiz(${i})" role="button" tabindex="0" aria-label="Answer: ${o}">${o}</div>`).join('')}</div>
       `;
       quizAnswered = false;
     }
+
+    // Keyboard support for quiz options (delegated on container)
+    document.getElementById('quizContainer').addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const opt = e.target.closest('.quiz-opt');
+        if (opt) {
+          e.preventDefault();
+          const idx = Array.from(document.querySelectorAll('.quiz-opt')).indexOf(opt);
+          answerQuiz(idx);
+        }
+      }
+    });
 
     function answerQuiz(idx) {
       if (quizAnswered) return;
@@ -105,7 +122,7 @@
           <div class="quiz-score">${quizScore}/${quizQuestions.length}</div>
           <div class="quiz-score-label">You Scored ${pct}%</div>
           <div class="quiz-verdict">${verdict}</div>
-          <button class="gold-btn" style="margin-top:30px;" onclick="quizIdx=0;quizScore=0;renderQuestion()">🔄 Play Again</button>
+          <button class="gold-btn" style="margin-top:30px;" onclick="quizIdx=0;quizScore=0;renderQuestion()" aria-label="Play again">🔄 Play Again</button>
         </div>
       `;
       if (pct >= 70) setTimeout(() => parent.ConfettiEngine.launch(), 500);
