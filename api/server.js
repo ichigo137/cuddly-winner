@@ -1,21 +1,24 @@
 require('dotenv').config({ override: true });
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ── Supabase Client ──
+// ── Supabase Client (service role for server-side signed URL generation) ──
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET;
+const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_BUCKET) {
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_BUCKET || !SUPABASE_JWT_SECRET) {
   console.error('❌ Missing required environment variables:');
   if (!SUPABASE_URL) console.error('   - SUPABASE_URL');
   if (!SUPABASE_SERVICE_ROLE_KEY) console.error('   - SUPABASE_SERVICE_ROLE_KEY');
   if (!SUPABASE_BUCKET) console.error('   - SUPABASE_BUCKET');
+  if (!SUPABASE_JWT_SECRET) console.error('   - SUPABASE_JWT_SECRET');
   process.exit(1);
 }
 
@@ -27,23 +30,44 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 
 // ── CORS — allow requests from the static site ──
 app.use(cors({
-  origin: true, // reflect the requesting origin (works for both local and production)
+  origin: true,
   methods: ['GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// ── GET /api/health ──
+// ── Auth middleware — verifies Supabase JWT access token ──
+function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing or invalid Authorization header.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, SUPABASE_JWT_SECRET);
+    req.user = decoded; // { sub, email, aud, role, ... }
+    next();
+  } catch (err) {
+    console.error('[Auth] JWT verification failed:', err.message);
+    return res.status(401).json({ error: 'Invalid or expired token.' });
+  }
+}
+
+// ── GET /api/health ── (public, for debugging)
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     bucket: SUPABASE_BUCKET,
     hasUrl: !!SUPABASE_URL,
     hasKey: !!SUPABASE_SERVICE_ROLE_KEY,
+    hasJwtSecret: !!SUPABASE_JWT_SECRET,
   });
 });
 
-// ── GET /api/photos ──
-app.get('/api/photos', async (req, res) => {
+// ── GET /api/photos ── (protected — requires valid JWT)
+app.get('/api/photos', requireAuth, async (req, res) => {
   try {
+    console.log(`[API] Authenticated user: ${req.user.email || req.user.sub}`);
     console.log(`[API] Listing from bucket: ${SUPABASE_BUCKET}`);
 
     const { data: objects, error: listError } = await supabase
@@ -70,11 +94,9 @@ app.get('/api/photos', async (req, res) => {
     const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif', '.bmp', '.tiff'];
     let allImages = [];
 
-    // Separate folders from files
     const folders = objects.filter(o => !o.id && !o.metadata);
     const files = objects.filter(o => o.id || o.metadata);
 
-    // Root-level images
     const rootImages = files.filter(obj => {
       const name = obj.name.toLowerCase();
       return imageExts.some(ext => name.endsWith(ext));
@@ -108,8 +130,8 @@ app.get('/api/photos', async (req, res) => {
       return res.json({ photos: [] });
     }
 
-    // Generate signed URLs (valid for 1 hour)
-    const EXPIRES_IN = 3600;
+    // Generate signed URLs — 60 second expiry for security
+    const EXPIRES_IN = 60;
     const photos = await Promise.all(
       allImages.map(async (img) => {
         const filePath = img._folder ? `${img._folder}/${img.name}` : img.name;
@@ -139,7 +161,7 @@ app.get('/api/photos', async (req, res) => {
     );
 
     const validPhotos = photos.filter(Boolean);
-    console.log(`[API] Returning ${validPhotos.length} photos`);
+    console.log(`[API] Returning ${validPhotos.length} photos (signed URLs expire in ${EXPIRES_IN}s)`);
     res.json({ photos: validPhotos });
 
   } catch (err) {

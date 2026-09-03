@@ -136,10 +136,23 @@
       margin-top: 12px;
     }
 
+    /* ── Loading / Error states ── */
+    .gallery-loading {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 300px; gap: 15px; color: var(--gold-light); font-family: 'Dancing Script', cursive;
+    }
+    .gallery-loading .spinner {
+      width: 30px; height: 30px; border: 3px solid rgba(212,168,83,.2);
+      border-top-color: var(--gold); border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     /* ── Reduced motion ── */
     @media (prefers-reduced-motion: reduce) {
       .card { transition: none !important; }
       .nav-arrow:hover { transform: translateY(-50%) !important; }
+      .gallery-loading .spinner { animation: none !important; }
     }
 
     @media (max-width: 600px) {
@@ -160,59 +173,80 @@
     </div>
 
     <div class="carousel" id="carousel">
-      <!-- Cards injected by JS -->
-      <button class="nav-arrow prev" id="prevBtn" aria-label="Previous photo">◀</button>
-      <button class="nav-arrow next" id="nextBtn" aria-label="Next photo">▶</button>
+      <div class="gallery-loading" id="galleryLoading">
+        <div class="spinner"></div>
+        <div>Loading photos...</div>
+      </div>
+      <button class="nav-arrow prev" id="prevBtn" aria-label="Previous photo" style="display:none;">◀</button>
+      <button class="nav-arrow next" id="nextBtn" aria-label="Next photo" style="display:none;">▶</button>
     </div>
 
     <div class="carousel-dots" id="carouselDots"></div>
-    <div class="carousel-counter" id="carouselCounter">1 / 10</div>
+    <div class="carousel-counter" id="carouselCounter"></div>
   </div>
 
   <script src="../js/engine.js"></script>
   <script>
-    // ══════════════════════════════════════════════════════
-    //  REPLACE THE URLs BELOW WITH YOUR IMAGEBB IMAGE URLS
-    //  Upload images at https://imgbb.com and paste the
-    //  "Direct link" URL for each image.
-    // ══════════════════════════════════════════════════════
-    const photos = [
-      { url: '', caption: 'Memory 1' },
-      { url: '', caption: 'Memory 2' },
-      { url: '', caption: 'Memory 3' },
-      { url: '', caption: 'Memory 4' },
-      { url: '', caption: 'Memory 5' },
-      { url: '', caption: 'Memory 6' },
-      { url: '', caption: 'Memory 7' },
-      { url: '', caption: 'Memory 8' },
-      { url: '', caption: 'Memory 9' },
-      { url: '', caption: 'Memory 10' },
-    ];
-
     const carousel = document.getElementById('carousel');
+    const loadingEl = document.getElementById('galleryLoading');
     const dotsEl   = document.getElementById('carouselDots');
     const counterEl = document.getElementById('carouselCounter');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    let photos = [];
     let idx = 0;
     let startX = 0, deltaX = 0, swiping = false;
 
-    // ── Build cards ──
-    photos.forEach((photo, i) => {
-      const card = document.createElement('div');
-      card.className = 'card' + (i === 0 ? ' active' : '');
-      card.innerHTML = photo.url
-        ? `<img src="${photo.url}" alt="${photo.caption}" loading="${i < 2 ? 'eager' : 'lazy'}"><div class="caption">${photo.caption}</div>`
-        : `<div class="placeholder"><div class="icon">📸</div><div class="text">${photo.caption}</div></div>`;
-      carousel.insertBefore(card, document.getElementById('nextBtn'));
-    });
+    // ── Determine API base URL ──
+    function getApiBaseUrl() {
+      try {
+        const parentUrl = parent.window.PHOTO_API_URL;
+        if (parentUrl) return parentUrl;
+      } catch (e) {}
+      return window.location.protocol + '//' + window.location.host;
+    }
 
-    // ── Build dots ──
-    photos.forEach((_, i) => {
-      const dot = document.createElement('button');
-      dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-      dot.setAttribute('aria-label', `Go to photo ${i + 1}`);
-      dot.addEventListener('click', () => goTo(i));
-      dotsEl.appendChild(dot);
-    });
+    // ── Get auth token from parent window ──
+    function getAuthToken() {
+      try { return parent.window.__AUTH_TOKEN || ''; } catch (e) { return ''; }
+    }
+
+    // ── Build cards from photo data ──
+    function buildCarousel(photoData) {
+      if (loadingEl) loadingEl.remove();
+      photos = photoData;
+
+      if (photos.length === 0) {
+        carousel.innerHTML = `
+          <div class="placeholder">
+            <div class="icon">📸</div>
+            <div class="text">No photos uploaded yet</div>
+          </div>`;
+        return;
+      }
+
+      photos.forEach((photo, i) => {
+        const card = document.createElement('div');
+        card.className = 'card' + (i === 0 ? ' active' : '');
+        card.innerHTML = `
+          <img src="${photo.url}" alt="${photo.caption}" loading="${i < 2 ? 'eager' : 'lazy'}">
+          <div class="caption">${photo.caption}</div>`;
+        carousel.insertBefore(card, nextBtn);
+      });
+
+      // Build dots
+      photos.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', `Go to photo ${i + 1}`);
+        dot.addEventListener('click', () => goTo(i));
+        dotsEl.appendChild(dot);
+      });
+
+      prevBtn.style.display = '';
+      nextBtn.style.display = '';
+      counterEl.textContent = `1 / ${photos.length}`;
+    }
 
     // ── Navigation ──
     function goTo(newIdx, direction) {
@@ -220,29 +254,19 @@
       const cards = document.querySelectorAll('.card');
       const oldCard = cards[idx];
       const newCard = cards[newIdx];
-
-      // Determine slide direction
       const goingRight = direction !== undefined ? direction === 'right' : newIdx > idx;
 
       oldCard.classList.remove('active');
       oldCard.classList.add(goingRight ? 'exit-left' : '');
-      if (!goingRight) {
-        oldCard.style.transform = 'scale(0.92) translateX(60px)';
-      }
+      if (!goingRight) oldCard.style.transform = 'scale(0.92) translateX(60px)';
 
       newCard.classList.remove('exit-left');
       newCard.style.transform = goingRight ? 'translateX(60px)' : 'translateX(-60px)';
-      // Force reflow so the transition triggers
       void newCard.offsetWidth;
       newCard.classList.add('active');
       newCard.style.transform = '';
 
-      // Clean up old card after transition
-      setTimeout(() => {
-        oldCard.classList.remove('exit-left');
-        oldCard.style.transform = '';
-      }, 500);
-
+      setTimeout(() => { oldCard.classList.remove('exit-left'); oldCard.style.transform = ''; }, 500);
       idx = newIdx;
       updateUI();
     }
@@ -252,12 +276,8 @@
       counterEl.textContent = `${idx + 1} / ${photos.length}`;
     }
 
-    document.getElementById('prevBtn').addEventListener('click', () => {
-      goTo(idx > 0 ? idx - 1 : photos.length - 1, 'left');
-    });
-    document.getElementById('nextBtn').addEventListener('click', () => {
-      goTo(idx < photos.length - 1 ? idx + 1 : 0, 'right');
-    });
+    prevBtn.addEventListener('click', () => goTo(idx > 0 ? idx - 1 : photos.length - 1, 'left'));
+    nextBtn.addEventListener('click', () => goTo(idx < photos.length - 1 ? idx + 1 : 0, 'right'));
 
     // ── Keyboard ──
     document.addEventListener('keydown', e => {
@@ -266,27 +286,14 @@
     });
 
     // ── Touch / swipe ──
-    carousel.addEventListener('touchstart', e => {
-      startX = e.touches[0].clientX;
-      swiping = true;
-    }, { passive: true });
-
-    carousel.addEventListener('touchmove', e => {
-      if (!swiping) return;
-      deltaX = e.touches[0].clientX - startX;
-    }, { passive: true });
-
+    carousel.addEventListener('touchstart', e => { startX = e.touches[0].clientX; swiping = true; }, { passive: true });
+    carousel.addEventListener('touchmove', e => { if (swiping) deltaX = e.touches[0].clientX - startX; }, { passive: true });
     carousel.addEventListener('touchend', () => {
       if (!swiping) return;
       swiping = false;
       if (Math.abs(deltaX) > 50) {
-        if (deltaX < 0) {
-          // Swiped left → next
-          goTo(idx < photos.length - 1 ? idx + 1 : 0, 'right');
-        } else {
-          // Swiped right → prev
-          goTo(idx > 0 ? idx - 1 : photos.length - 1, 'left');
-        }
+        if (deltaX < 0) goTo(idx < photos.length - 1 ? idx + 1 : 0, 'right');
+        else goTo(idx > 0 ? idx - 1 : photos.length - 1, 'left');
       }
       deltaX = 0;
     });
@@ -305,6 +312,38 @@
       deltaX = 0;
     });
     carousel.addEventListener('mouseleave', () => { mouseDown = false; deltaX = 0; });
+
+    // ── Fetch photos from API ──
+    async function loadPhotos() {
+      try {
+        const apiBase = getApiBaseUrl();
+        const token = getAuthToken();
+        if (!token) throw new Error('Not authenticated. Please log in.');
+
+        const res = await fetch(apiBase + '/api/photos', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.details || err.error || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        buildCarousel(data.photos || []);
+      } catch (err) {
+        console.error('[Gallery] Failed to load photos:', err);
+        if (loadingEl) loadingEl.remove();
+        carousel.innerHTML = `
+          <div class="placeholder">
+            <div class="icon">⚠️</div>
+            <div class="text">Could not load photos</div>
+            <div style="font-size:14px;color:var(--blush);">${err.message}</div>
+          </div>`;
+      }
+    }
+
+    loadPhotos();
   </script>
 </body>
 </html>

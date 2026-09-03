@@ -200,6 +200,9 @@
   <!-- PAGE FRAME -->
   <iframe id="page-frame" src="pages/home.html"></iframe>
 
+  <!-- AUTH BUTTON -->
+  <button id="authBtn" style="position:fixed;bottom:12px;right:12px;z-index:1001;background:rgba(26,10,30,.8);border:1px solid rgba(212,168,83,.3);border-radius:20px;padding:6px 16px;color:var(--gold-light);font-family:'Dancing Script',cursive;font-size:13px;cursor:pointer;backdrop-filter:blur(10px);transition:all .3s;">🔒 Login</button>
+
   <!-- FOOTER -->
   <div id="main-footer">
     <p>Made with 💖 for the most wonderful sister in the world</p>
@@ -208,13 +211,39 @@
   <!-- SHARED ENGINE -->
   <script src="js/engine.js"></script>
 
+  <!-- Supabase JS client (for auth) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
   <!-- SHELL ROUTER -->
   <script>
-    // ── Photo API URL ──
-    // Leave empty for local dev (uses same-origin server.js).
-    // Set to your Render Web Service URL for production.
-    // Example: window.PHOTO_API_URL = 'https://birthday-photo-api.onrender.com';
-    window.PHOTO_API_URL = '';
+    // ── Config ──
+    window.PHOTO_API_URL = ''; // empty = same-origin (local dev)
+    window.__SUPABASE_URL = 'https://zkhmdpknqcylwyqqmtcp.supabase.co';
+    window.__SUPABASE_ANON_KEY = 'sb_publishable_rZnfdRs-yoKxYW8ctqYGbA_nt54H2Aw'; // set via env or hardcoded below
+    window.__AUTH_TOKEN = localStorage.getItem('bday_auth_token') || '';
+
+    // ── Supabase Auth helpers ──
+    const sbClient = window.supabase.createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
+
+    async function checkAuth() {
+      const { data: { session } } = await sbClient.auth.getSession();
+      if (session) {
+        window.__AUTH_TOKEN = session.access_token;
+        localStorage.setItem('bday_auth_token', session.access_token);
+      } else {
+        window.__AUTH_TOKEN = '';
+        localStorage.removeItem('bday_auth_token');
+      }
+      return !!session;
+    }
+
+    async function signOut() {
+      await sbClient.auth.signOut();
+      window.__AUTH_TOKEN = '';
+      localStorage.removeItem('bday_auth_token');
+      window.location.hash = '';
+      window.location.reload();
+    }
 
     const frame = document.getElementById('page-frame');
     const navLinks = document.querySelectorAll('#navbar a');
@@ -295,6 +324,25 @@
       } catch (e) {}
     });
 
+    // ── Auth button ──
+    const authBtn = document.getElementById('authBtn');
+    authBtn.addEventListener('click', async () => {
+      const isLoggedIn = !!window.__AUTH_TOKEN;
+      if (isLoggedIn) {
+        if (confirm('Sign out?')) signOut();
+      } else {
+        navLinks.forEach(l => l.classList.remove('active'));
+        loadPage('pages/login.html');
+        history.pushState(null, '', '#login');
+      }
+    });
+
+    // ── Check auth state on load ──
+    (async () => {
+      const isLoggedIn = await checkAuth();
+      authBtn.textContent = isLoggedIn ? '🔓 Logout' : '🔒 Login';
+    })();
+
     // Hash routing on load
     const hash = location.hash.slice(1);
     if (hash) {
@@ -302,7 +350,7 @@
         home: 'pages/home.html', cake: 'pages/cake.html', quiz: 'pages/quiz.html',
         games: 'pages/games.html', wishes: 'pages/wishes.html', fortune: 'pages/fortune.html',
         playlist: 'pages/playlist.html', slideshow: 'pages/slideshow.html',
-        gallery: 'pages/gallery.html'
+        gallery: 'pages/gallery.html', login: 'pages/login.html'
       };
       if (pageMap[hash]) {
         navLinks.forEach(l => {
