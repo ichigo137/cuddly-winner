@@ -209,6 +209,12 @@
 
   <!-- SHELL ROUTER -->
   <script>
+    // ── Photo API URL ──
+    // Leave empty for local dev (uses same-origin server.js).
+    // Set to your Render Web Service URL for production.
+    // Example: window.PHOTO_API_URL = 'https://birthday-photo-api.onrender.com';
+    window.PHOTO_API_URL = '';
+
     const frame = document.getElementById('page-frame');
     const navLinks = document.querySelectorAll('#navbar a');
     const hamburger = document.getElementById('hamburger');

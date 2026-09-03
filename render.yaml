@@ -1,8 +1,20 @@
 services:
+  # ── Static Site (frontend) ──
   - type: web
     name: birthday-website
+    runtime: static
+    buildCommand: echo "Static site — no build needed"
+    staticPublishPath: .
+    envVars:
+      - key: PHOTO_API_URL
+        sync: false
+
+  # ── API Web Service (backend) ──
+  - type: web
+    name: birthday-photo-api
     runtime: node
     plan: free
+    rootDir: api
     buildCommand: npm install
     startCommand: node server.js
     envVars:
@@ -11,6 +23,6 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: SUPABASE_BUCKET
-        value: birthday-photos
+        sync: false
       - key: NODE_ENV
         value: production

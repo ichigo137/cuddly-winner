@@ -1,12 +1,12 @@
 require('dotenv').config({ override: true });
 const express = require('express');
+const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
-const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
-// ── Supabase Client (service role for server-side signed URL generation) ──
+// ── Supabase Client ──
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET;
@@ -19,32 +19,19 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_BUCKET) {
   process.exit(1);
 }
 
-console.log(`✅ Supabase config loaded:`);
-console.log(`   URL: ${SUPABASE_URL}`);
-console.log(`   Bucket: ${SUPABASE_BUCKET}`);
-console.log(`   Service key: ${SUPABASE_SERVICE_ROLE_KEY.substring(0, 10)}...`);
+console.log(`✅ Supabase config loaded — bucket: ${SUPABASE_BUCKET}`);
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
 
-// ── Serve static files ──
-app.use(express.static(path.join(__dirname), {
-  extensions: ['html'],
-  index: 'index.html',
+// ── CORS — allow requests from the static site ──
+app.use(cors({
+  origin: true, // reflect the requesting origin (works for both local and production)
+  methods: ['GET', 'OPTIONS'],
 }));
 
-// ── CORS headers for API routes ──
-app.use('/api', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
-
 // ── GET /api/health ──
-// Quick check that the server is running and env vars are configured.
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -55,13 +42,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── GET /api/photos ──
-// Lists objects in the Supabase Storage bucket and returns
-// short-lived signed URLs so the bucket stays private.
 app.get('/api/photos', async (req, res) => {
   try {
-    console.log(`[API /photos] Listing from bucket: ${SUPABASE_BUCKET}`);
+    console.log(`[API] Listing from bucket: ${SUPABASE_BUCKET}`);
 
-    // 1. List all objects at the root of the bucket
     const { data: objects, error: listError } = await supabase
       .storage
       .from(SUPABASE_BUCKET)
@@ -71,23 +55,18 @@ app.get('/api/photos', async (req, res) => {
       });
 
     if (listError) {
-      console.error('[API /photos] Supabase list error:', JSON.stringify(listError));
+      console.error('[API] Supabase list error:', JSON.stringify(listError));
       return res.status(500).json({
         error: 'Failed to list photos.',
         details: listError.message || String(listError),
       });
     }
 
-    console.log(`[API /photos] Raw objects returned: ${objects ? objects.length : 0}`);
-    if (objects && objects.length > 0) {
-      console.log(`[API /photos] Object names: ${objects.map(o => o.name).join(', ')}`);
-    }
-
     if (!objects || objects.length === 0) {
       return res.json({ photos: [] });
     }
 
-    // 2. Filter to only image files (also handle folders — recurse into them)
+    // Filter to image files
     const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif', '.bmp', '.tiff'];
     let allImages = [];
 
@@ -104,7 +83,7 @@ app.get('/api/photos', async (req, res) => {
 
     // Recurse into subfolders (one level deep)
     for (const folder of folders) {
-      console.log(`[API /photos] Checking subfolder: ${folder.name}`);
+      console.log(`[API] Checking subfolder: ${folder.name}`);
       const { data: subObjects, error: subError } = await supabase
         .storage
         .from(SUPABASE_BUCKET)
@@ -118,19 +97,18 @@ app.get('/api/photos', async (req, res) => {
           const name = obj.name.toLowerCase();
           return imageExts.some(ext => name.endsWith(ext));
         });
-        // Prefix the name with the folder path for signed URL generation
         subImages.forEach(img => { img._folder = folder.name; });
         allImages.push(...subImages);
       }
     }
 
-    console.log(`[API /photos] Total images found: ${allImages.length}`);
+    console.log(`[API] Total images: ${allImages.length}`);
 
     if (allImages.length === 0) {
       return res.json({ photos: [] });
     }
 
-    // 3. Generate signed URLs (valid for 1 hour)
+    // Generate signed URLs (valid for 1 hour)
     const EXPIRES_IN = 3600;
     const photos = await Promise.all(
       allImages.map(async (img) => {
@@ -142,15 +120,14 @@ app.get('/api/photos', async (req, res) => {
           .createSignedUrl(filePath, EXPIRES_IN);
 
         if (error) {
-          console.error(`[API /photos] Signed URL error for ${filePath}:`, JSON.stringify(error));
+          console.error(`[API] Signed URL error for ${filePath}:`, JSON.stringify(error));
           return null;
         }
 
-        // Use the filename (without extension) as the caption
         const caption = img.name
-          .replace(/\.[^/.]+$/, '')           // remove extension
-          .replace(/[-_]/g, ' ')              // underscores/hyphens to spaces
-          .replace(/\b\w/g, c => c.toUpperCase()); // title case
+          .replace(/\.[^/.]+$/, '')
+          .replace(/[-_]/g, ' ')
+          .replace(/\b\w/g, c => c.toUpperCase());
 
         return {
           url: data.signedUrl,
@@ -161,23 +138,16 @@ app.get('/api/photos', async (req, res) => {
       })
     );
 
-    // 4. Filter out any nulls (failed signed URLs) and return
     const validPhotos = photos.filter(Boolean);
-    console.log(`[API /photos] Returning ${validPhotos.length} photos with signed URLs`);
+    console.log(`[API] Returning ${validPhotos.length} photos`);
     res.json({ photos: validPhotos });
 
   } catch (err) {
-    console.error('[API /photos] Unexpected error:', err);
+    console.error('[API] Unexpected error:', err);
     res.status(500).json({ error: 'Internal server error.', details: err.message });
   }
 });
 
-// ── Fallback: serve index.html for SPA-like routing ──
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// ── Start server ──
 app.listen(PORT, () => {
-  console.log(`🎂 Birthday website running at http://localhost:${PORT}`);
+  console.log(`📸 Photo API running at http://localhost:${PORT}`);
 });

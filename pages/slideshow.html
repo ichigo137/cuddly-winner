@@ -25,9 +25,7 @@
       position: absolute; inset: 0;
     }
     .slide-caption {
-      font-family: 'Dancing Script', cursive; font-size: 22px;
-      color: var(--gold-light); margin-top: 15px; position: relative; z-index: 2;
-      text-shadow: 0 2px 8px rgba(0,0,0,.6);
+      display: none;
     }
     .slide-label { font-size: 14px; color: var(--blush); margin-top: 5px; position: relative; z-index: 2; }
 
@@ -176,26 +174,47 @@
       counterEl.textContent = `1 / ${photos.length}`;
     }
 
+    // ── Determine API base URL ──
+    // Local dev: same origin (server.js serves both static + API)
+    // Production: separate Render Web Service URL set in parent index.html
+    function getApiBaseUrl() {
+      // Check if parent window has a configured API URL (production)
+      try {
+        const parentUrl = parent.window.PHOTO_API_URL;
+        if (parentUrl) return parentUrl;
+      } catch (e) { /* cross-origin or not in iframe */ }
+      // Fallback: same origin (local dev with server.js)
+      return window.location.protocol + '//' + window.location.host;
+    }
+
     // ── Fetch photos from backend API ──
     async function loadPhotos() {
       try {
-        // When inside an iframe served from the same origin, relative URL works.
-        // When opened directly (not in iframe), use absolute path.
-        const baseUrl = window.location.protocol + '//' + window.location.host;
-        const res = await fetch(baseUrl + '/api/photos');
+        const apiBase = getApiBaseUrl();
+        console.log('[Slideshow] API base:', apiBase);
+        const res = await fetch(apiBase + '/api/photos');
+        console.log('[Slideshow] Response status:', res.status);
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          const detail = errorData.details || errorData.error || `HTTP ${res.status}`;
+          console.error('[Slideshow] API error:', detail);
+          throw new Error(detail);
+        }
+
         const data = await res.json();
+        console.log('[Slideshow] Photos received:', (data.photos || []).length);
         slides = data.photos || [];
         renderSlides(slides);
       } catch (err) {
-        console.error('Failed to load photos:', err);
+        console.error('[Slideshow] Failed to load photos:', err);
         if (loadingEl) loadingEl.remove();
         frame.innerHTML = `
           <div class="slide-empty">
             <div class="empty-icon">⚠️</div>
             <div class="empty-text">Could not load photos</div>
-            <div style="font-size:14px;color:var(--blush);">Please check your connection and try again.</div>
+            <div style="font-size:14px;color:var(--blush);margin:5px 0;">${err.message || 'Unknown error'}</div>
+            <button class="gold-btn" style="margin-top:15px;font-size:14px;padding:8px 20px;" onclick="location.reload()">🔄 Retry</button>
           </div>`;
       }
     }
