@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: birthday-website
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: birthday-photos
+      - key: NODE_ENV
+        value: production
