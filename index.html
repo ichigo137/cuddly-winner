@@ -6,6 +6,35 @@
   <title>✨ Happy Birthday, Dear Sister ✨</title>
   <link rel="stylesheet" href="css/styles.css">
   <style>
+    /* ===== VIDEO INTRO ===== */
+    #videoIntro {
+      position: fixed; inset: 0; z-index: 200000;
+      background: #000; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; transition: opacity 1s, visibility 1s;
+    }
+    #videoIntro.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    #videoIntro video {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .video-skip {
+      position: absolute; bottom: 40px; right: 30px;
+      padding: 12px 28px; border-radius: 50px;
+      background: rgba(26,10,30,.7); border: 1px solid rgba(212,168,83,.5);
+      color: var(--gold-light); font-family: 'Dancing Script', cursive;
+      font-size: 16px; cursor: pointer; backdrop-filter: blur(10px);
+      transition: all .3s; z-index: 10;
+    }
+    .video-skip:hover { background: var(--gold); color: var(--midnight); }
+    .video-msg {
+      position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+      font-family: 'Great Vibes', cursive; font-size: 24px;
+      color: var(--gold-light); text-shadow: 0 2px 20px rgba(0,0,0,.8);
+      white-space: nowrap; animation: pulse 2s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .video-msg { animation: none !important; }
+    }
+
     /* ===== PRELOADER ===== */
     #preloader {
       position: fixed; inset: 0;
@@ -170,6 +199,17 @@
     <symbol id="icon-close" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></symbol>
   </svg>
 
+  <!-- VIDEO INTRO (first visit only) -->
+  <div id="videoIntro">
+    <video id="introVideo" autoplay muted playsinline>
+      <!-- ═══ PASTE YOUR VIDEO URL BELOW ═══ -->
+      <!-- Free hosting: Google Drive, Streamable, Cloudinary, Archive.org -->
+      <source src="" type="video/mp4">
+    </video>
+    <div class="video-skip" id="videoSkip">Tap to skip ▶</div>
+    <div class="video-msg">A special message for you 💖</div>
+  </div>
+
   <!-- PRELOADER -->
   <div id="preloader">
     <div class="preloader-heart">💖</div>
@@ -188,20 +228,17 @@
   <nav id="navbar">
     <a href="#" data-page="pages/home.html" class="active" aria-label="Home"><svg class="nav-icon"><use href="#icon-home"></use></svg></a>
     <a href="#" data-page="pages/cake.html" aria-label="Cake"><svg class="nav-icon"><use href="#icon-cake"></use></svg></a>
-    <a href="#" data-page="pages/quiz.html" aria-label="Quiz"><svg class="nav-icon"><use href="#icon-brain"></use></svg></a>
+
     <a href="#" data-page="pages/games.html" aria-label="Games"><svg class="nav-icon"><use href="#icon-games"></use></svg></a>
     <a href="#" data-page="pages/wishes.html" aria-label="Wishes"><svg class="nav-icon"><use href="#icon-wishes"></use></svg></a>
     <a href="#" data-page="pages/fortune.html" aria-label="Fortune"><svg class="nav-icon"><use href="#icon-fortune"></use></svg></a>
     <a href="#" data-page="pages/playlist.html" aria-label="Playlist"><svg class="nav-icon"><use href="#icon-playlist"></use></svg></a>
-    <a href="#" data-page="pages/slideshow.html" aria-label="Slideshow"><svg class="nav-icon"><use href="#icon-gallery"></use></svg></a>
+
     <a href="#" data-page="pages/gallery.html" aria-label="Gallery"><svg class="nav-icon"><use href="#icon-gallery"></use></svg></a>
   </nav>
 
   <!-- PAGE FRAME -->
   <iframe id="page-frame" src="pages/home.html"></iframe>
-
-  <!-- AUTH BUTTON -->
-  <button id="authBtn" style="position:fixed;bottom:12px;right:12px;z-index:1001;background:rgba(26,10,30,.8);border:1px solid rgba(212,168,83,.3);border-radius:20px;padding:6px 16px;color:var(--gold-light);font-family:'Dancing Script',cursive;font-size:13px;cursor:pointer;backdrop-filter:blur(10px);transition:all .3s;">🔒 Login</button>
 
   <!-- FOOTER -->
   <div id="main-footer">
@@ -211,49 +248,63 @@
   <!-- SHARED ENGINE -->
   <script src="js/engine.js"></script>
 
-  <!-- Supabase JS client (for auth) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
   <!-- SHELL ROUTER -->
   <script>
-    // ── Config ──
-    window.PHOTO_API_URL = ''; // empty = same-origin (local dev)
-    window.__SUPABASE_URL = 'https://zkhmdpknqcylwyqqmtcp.supabase.co';
-    window.__SUPABASE_ANON_KEY = 'sb_publishable_rZnfdRs-yoKxYW8ctqYGbA_nt54H2Aw'; // set via env or hardcoded below
-    window.__AUTH_TOKEN = localStorage.getItem('bday_auth_token') || '';
-
-    // ── Supabase Auth helpers ──
-    const sbClient = window.supabase.createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
-
-    async function checkAuth() {
-      const { data: { session } } = await sbClient.auth.getSession();
-      if (session) {
-        window.__AUTH_TOKEN = session.access_token;
-        localStorage.setItem('bday_auth_token', session.access_token);
-      } else {
-        window.__AUTH_TOKEN = '';
-        localStorage.removeItem('bday_auth_token');
-      }
-      return !!session;
-    }
-
-    async function signOut() {
-      await sbClient.auth.signOut();
-      window.__AUTH_TOKEN = '';
-      localStorage.removeItem('bday_auth_token');
-      window.location.hash = '';
-      window.location.reload();
-    }
 
     const frame = document.getElementById('page-frame');
     const navLinks = document.querySelectorAll('#navbar a');
     const hamburger = document.getElementById('hamburger');
     const navbar = document.getElementById('navbar');
 
-    // Preloader
-    window.addEventListener('load', () => {
-      setTimeout(() => document.getElementById('preloader').classList.add('hidden'), 2200);
-    });
+    // ── Video Intro (first visit only) ──
+    const videoIntro = document.getElementById('videoIntro');
+    const introVideo = document.getElementById('introVideo');
+    const videoSkip = document.getElementById('videoSkip');
+    const hasSeenIntro = localStorage.getItem('bday_intro_seen');
+
+    if (hasSeenIntro) {
+      // Skip intro — hide it immediately
+      videoIntro.classList.add('hidden');
+    } else {
+      // Show intro — hide everything else
+      document.getElementById('preloader').classList.add('hidden');
+      document.getElementById('navbar').style.display = 'none';
+      document.getElementById('page-frame').style.display = 'none';
+      document.getElementById('main-footer').style.display = 'none';
+
+      function endIntro() {
+        localStorage.setItem('bday_intro_seen', '1');
+        videoIntro.classList.add('hidden');
+        document.getElementById('navbar').style.display = '';
+        document.getElementById('page-frame').style.display = '';
+        document.getElementById('main-footer').style.display = '';
+      }
+
+      // Skip button
+      videoSkip.addEventListener('click', endIntro);
+
+      // Also skip on any tap/click on the video itself
+      introVideo.addEventListener('click', endIntro);
+
+      // When video ends naturally
+      introVideo.addEventListener('ended', endIntro);
+
+      // Safety: if video fails to load, skip after 2s
+      introVideo.addEventListener('error', () => {
+        setTimeout(endIntro, 500);
+      });
+      // Also skip if no src is set
+      if (!introVideo.querySelector('source').src || introVideo.querySelector('source').src === location.href) {
+        setTimeout(endIntro, 100);
+      }
+    }
+
+    // Preloader (only if intro was skipped or already seen)
+    if (hasSeenIntro) {
+      window.addEventListener('load', () => {
+        setTimeout(() => document.getElementById('preloader').classList.add('hidden'), 2200);
+      });
+    }
 
     // Hamburger toggle
     hamburger.addEventListener('click', () => {
@@ -324,33 +375,14 @@
       } catch (e) {}
     });
 
-    // ── Auth button ──
-    const authBtn = document.getElementById('authBtn');
-    authBtn.addEventListener('click', async () => {
-      const isLoggedIn = !!window.__AUTH_TOKEN;
-      if (isLoggedIn) {
-        if (confirm('Sign out?')) signOut();
-      } else {
-        navLinks.forEach(l => l.classList.remove('active'));
-        loadPage('pages/login.html');
-        history.pushState(null, '', '#login');
-      }
-    });
-
-    // ── Check auth state on load ──
-    (async () => {
-      const isLoggedIn = await checkAuth();
-      authBtn.textContent = isLoggedIn ? '🔓 Logout' : '🔒 Login';
-    })();
-
     // Hash routing on load
     const hash = location.hash.slice(1);
     if (hash) {
       const pageMap = {
-        home: 'pages/home.html', cake: 'pages/cake.html', quiz: 'pages/quiz.html',
+        home: 'pages/home.html', cake: 'pages/cake.html',
         games: 'pages/games.html', wishes: 'pages/wishes.html', fortune: 'pages/fortune.html',
-        playlist: 'pages/playlist.html', slideshow: 'pages/slideshow.html',
-        gallery: 'pages/gallery.html', login: 'pages/login.html'
+        playlist: 'pages/playlist.html',
+        gallery: 'pages/gallery.html'
       };
       if (pageMap[hash]) {
         navLinks.forEach(l => {

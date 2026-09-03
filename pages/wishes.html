@@ -7,40 +7,83 @@
   <link rel="stylesheet" href="../css/styles.css">
   <style>
     body { background: var(--midnight); }
-    .wishes-page { padding: 100px 20px 60px; max-width: 1000px; margin: 0 auto; }
-    .wish-form { max-width: 600px; margin: 0 auto 30px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .wishes-page { padding: 100px 20px 60px; max-width: 1000px; margin: 0 auto; text-align: center; }
+
+    .wish-intro {
+      font-family: 'Great Vibes', cursive; font-size: clamp(24px, 4vw, 36px);
+      color: var(--gold-light); margin-bottom: 10px; opacity: 0;
+      animation: fadeInUp .8s ease .3s forwards;
+    }
+    .wish-subtitle {
+      font-family: 'Dancing Script', cursive; font-size: 18px;
+      color: var(--lavender); margin-bottom: 40px; opacity: 0;
+      animation: fadeInUp .8s ease .6s forwards;
+    }
+
+    .wish-form {
+      max-width: 500px; margin: 0 auto 40px; display: flex; flex-direction: column;
+      gap: 12px; opacity: 0; animation: fadeInUp .8s ease .9s forwards;
+    }
     .wish-form input, .wish-form textarea {
-      padding: 12px 18px; background: rgba(255,255,255,.06);
-      border: 1px solid rgba(212,168,83,.2); border-radius: 12px;
+      padding: 14px 18px; background: rgba(255,255,255,.06);
+      border: 1px solid rgba(212,168,83,.2); border-radius: 14px;
       color: var(--blush); font-family: 'Cormorant Garamond', serif;
       font-size: 16px; outline: none; transition: border-color .3s; width: 100%;
     }
     .wish-form textarea { min-height: 80px; resize: vertical; }
     .wish-form input:focus, .wish-form textarea:focus { border-color: var(--gold); }
+    .wish-form input::placeholder, .wish-form textarea::placeholder { color: rgba(252,228,236,.4); }
     .wish-form button {
-      padding: 12px 30px; background: linear-gradient(135deg, var(--rose-deep), var(--gold));
-      border: none; border-radius: 12px; color: #fff;
-      font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700;
-      cursor: pointer; transition: all .3s;
+      padding: 14px 40px; background: linear-gradient(135deg, var(--rose-deep), var(--gold));
+      border: none; border-radius: 50px; color: #fff;
+      font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700;
+      cursor: pointer; transition: all .4s; letter-spacing: 1px;
+      box-shadow: 0 8px 30px rgba(201,75,124,.4); align-self: center;
     }
-    .wish-form button:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(201,75,124,.4); }
-    .wish-wall { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+    .wish-form button:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 12px 40px rgba(201,75,124,.6); }
+    .wish-form button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .wish-thanks {
+      font-family: 'Great Vibes', cursive; font-size: 28px;
+      color: var(--gold-light); margin-bottom: 30px;
+      display: none; animation: fadeInUp .6s ease;
+    }
+
+    .wish-wall { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+
     .floating-wish {
       background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
-      border: 1px solid rgba(212,168,83,.2); border-radius: 16px;
-      padding: 20px 24px; max-width: 280px;
-      transition: all .4s; animation: fadeInUp .6s ease; position: relative;
+      border: 1px solid rgba(212,168,83,.2); border-radius: 18px;
+      padding: 22px 24px; max-width: 280px; width: 100%;
+      opacity: 0; transform: translateY(30px) scale(0.95);
+      transition: all .5s cubic-bezier(.23,1,.32,1); position: relative;
+    }
+    .floating-wish.show {
+      opacity: 1; transform: translateY(0) scale(1);
+    }
+    .floating-wish.user-wish {
+      border-color: var(--gold); box-shadow: 0 0 20px rgba(212,168,83,.15);
     }
     .floating-wish:hover { transform: translateY(-5px) scale(1.02); border-color: var(--gold); box-shadow: 0 10px 30px rgba(212,168,83,.15); }
     .floating-wish .wish-heart {
-      position: absolute; top: 8px; right: 12px;
+      position: absolute; top: 10px; right: 14px;
       font-size: 14px; cursor: pointer; transition: transform .3s;
       color: var(--blush);
     }
     .floating-wish .wish-heart.liked { color: var(--rose-deep); }
     .floating-wish .wish-heart:hover { transform: scale(1.3); }
-    .floating-wish .wish-msg { font-size: 16px; color: var(--blush); line-height: 1.6; }
-    .floating-wish .wish-from { font-family: 'Dancing Script', cursive; font-size: 14px; color: var(--gold-light); margin-top: 8px; }
+    .floating-wish .wish-msg { font-size: 16px; color: var(--blush); line-height: 1.7; text-align: left; }
+    .floating-wish .wish-from { font-family: 'Dancing Script', cursive; font-size: 14px; color: var(--gold-light); margin-top: 10px; text-align: right; }
+    .floating-wish .wish-new {
+      position: absolute; top: -8px; left: 16px;
+      background: var(--gold); color: var(--midnight); font-size: 10px;
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      padding: 2px 10px; border-radius: 10px; letter-spacing: 1px;
+    }
+
+    @media (max-width: 600px) {
+      .floating-wish { max-width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -48,14 +91,18 @@
     <div class="section-header">
       <div class="ornament">✦ ✦ ✦</div>
       <h2>Wish Wall</h2>
-      <p>Send your love — add a wish to the wall!</p>
     </div>
 
-    <div class="wish-form">
+    <div class="wish-intro">Make a wish for her 💫</div>
+    <div class="wish-subtitle">Your words will join the wall of love</div>
+
+    <div class="wish-form" id="wishForm">
       <input type="text" id="wishName" placeholder="Your name..." maxlength="30">
       <textarea id="wishMsg" placeholder="Write a heartfelt wish..." maxlength="200"></textarea>
-      <button onclick="addWish()" aria-label="Send wish">💌 Send Wish</button>
+      <button onclick="addWish()" id="wishBtn">💌 Send Wish</button>
     </div>
+
+    <div class="wish-thanks" id="wishThanks">Your wish has been added! 🎉</div>
 
     <div class="wish-wall" id="wishWall"></div>
   </div>
@@ -67,48 +114,157 @@
       { name: 'Your Biggest Fan', msg: "You inspire everyone around you. Here's to another year of magic! ✨", likes: 3 },
       { name: 'Forever Sister', msg: "No distance or time can weaken what we share. Love you always! 💕", likes: 7 },
       { name: 'A Friend', msg: "Wishing you laughter, love, and all the cake you can eat! 🎂", likes: 2 },
+      { name: 'A Well-Wisher', msg: "The world is brighter because you're in it. Happy birthday, star! 🌟", likes: 4 },
+      { name: 'Childhood Buddy', msg: "Remember all those late-night talks? Here's to a million more. 🌙", likes: 6 },
+      { name: 'A Neighbor', msg: "Your kindness lights up every room. Wishing you the best birthday ever! 🏡", likes: 1 },
+      { name: 'College Friend', msg: "From all-nighters to this — cheers to you, always! 🎓", likes: 3 },
+      { name: 'A Cousin', msg: "Family like you is a blessing. Have the most amazing birthday! 👨‍👩‍👧", likes: 5 },
+      { name: 'Old School Pal', msg: "We've come so far! So proud of the person you've become. 📚", likes: 2 },
+      { name: 'A Teacher', msg: "Your curiosity and heart make the world a better place. Keep shining! 🌈", likes: 4 },
+      { name: 'Online Friend', msg: "Even from afar, your warmth reaches me. Happy birthday! 💻", likes: 3 },
+      { name: 'A Co-worker', msg: "Working with you is a joy. Here's to another year of greatness! 💼", likes: 2 },
+      { name: 'Bestie', msg: "You're not just my best friend, you're my soul sister. Love you forever! 💖", likes: 8 },
+      { name: 'A Music Lover', msg: "May your life always have a beautiful soundtrack. Happy birthday! 🎵", likes: 3 },
+      { name: 'A Traveler', msg: "May this year take you to the most beautiful places — inside and out! ✈️", likes: 4 },
+      { name: 'A Bookworm', msg: "Here's to the next chapter of your incredible story! 📖", likes: 2 },
+      { name: 'A Foodie', msg: "May your birthday be as delicious as your favorite meal! 🍕", likes: 5 },
+      { name: 'A Dreamer', msg: "Never stop dreaming. The universe has big plans for you! 🌠", likes: 6 },
+      { name: 'A Fighter', msg: "Your strength inspires everyone around you. Keep blooming! 🌺", likes: 4 },
+      { name: 'A Gentle Soul', msg: "Your gentleness is your superpower. Wishing you endless joy! 🕊️", likes: 3 },
+      { name: 'A Creative', msg: "The world needs your art, your ideas, your magic. Happy birthday! 🎨", likes: 2 },
+      { name: 'A Fitness Enthusiast', msg: "May you always find energy and joy in every step! 🏃‍♀️", likes: 1 },
+      { name: 'A Nature Lover', msg: "May your garden of life bloom with love and laughter! 🌻", likes: 3 },
+      { name: 'A Pet Parent', msg: "Your fur baby is lucky to have you. Have the best birthday! 🐾", likes: 4 },
+      { name: 'A Gamer', msg: "Level up this year! Wishing you all the power-ups! 🎮", likes: 2 },
+      { name: 'A Yoga Friend', msg: "Namaste and happy birthday! May your soul find peace and joy! 🧘", likes: 3 },
+      { name: 'A Chef', msg: "You make the world tastier. Here's to cooking up an amazing year! 👨‍🍳", likes: 2 },
+      { name: 'A Photographer', msg: "You capture beauty in everything. Here's to more stunning moments! 📸", likes: 4 },
+      { name: 'A Writer', msg: "Your words touch hearts. Keep writing your beautiful story! ✍️", likes: 3 },
+      { name: 'A Scientist', msg: "Your mind is brilliant and your heart is gold. Happy birthday! 🔬", likes: 2 },
+      { name: 'A Musician', msg: "May your life always be in perfect harmony! 🎶", likes: 5 },
+      { name: 'A Dancer', msg: "Keep dancing through life with grace and joy! 💃", likes: 3 },
+      { name: 'A Gardener', msg: "May your birthday bloom with love, just like your garden! 🌷", likes: 2 },
+      { name: 'A Volunteer', msg: "Your selfless heart makes the world better. Thank you for being you! 🤝", likes: 6 },
+      { name: 'A Mentor', msg: "You guided me when I needed it most. Wishing you the happiest birthday! 🌟", likes: 4 },
+      { name: 'A New Friend', msg: "Just met you and already know you're special. Happy birthday! 🎉", likes: 1 },
+      { name: 'An Old Friend', msg: "Some friendships are timeless. Ours is one of them. Love you! 💕", likes: 7 },
+      { name: 'A Neighbor', msg: "You make the neighborhood feel like home. Happy birthday! 🏠", likes: 2 },
+      { name: 'A Shop Owner', msg: "Thanks for always having a smile. Wishing you a wonderful year! 🛍️", likes: 1 },
+      { name: 'A Nurse', msg: "You heal with your hands and your heart. The world needs more like you! 💉", likes: 5 },
+      { name: 'A Doctor', msg: "Your dedication saves lives. Wishing you rest and joy on your birthday! 🩺", likes: 4 },
+      { name: 'An Artist', msg: "Your canvas is the world and your colors are kindness. Happy birthday! 🖌️", likes: 3 },
+      { name: 'A Veteran', msg: "Your service and sacrifice are never forgotten. Happy birthday, hero! 🎖️", likes: 6 },
+      { name: 'A Grandparent', msg: "Your wisdom is our treasure. Wishing you health and happiness always! 👴👵", likes: 5 },
+      { name: 'A Parent', msg: "You gave me life and love. There's no greater gift. Happy birthday! 🎁", likes: 8 },
+      { name: 'A Sibling', msg: "Built-in best friend forever. Love you more than words can say! 🧡", likes: 7 },
+      { name: 'A Stranger', msg: "Even though we just met, I wish you the happiest birthday! 🌍", likes: 1 },
+      { name: 'A Dreamer', msg: "The stars are aligning for you this year. Believe in yourself! ⭐", likes: 4 },
     ];
-    let wishes = JSON.parse(localStorage.getItem('bdayWishes') || 'null') || defaults;
 
-    function renderWishes() {
-      const wall = document.getElementById('wishWall');
-      wall.innerHTML = '';
-      wishes.forEach((w, i) => {
-        const card = document.createElement('div');
-        card.className = 'floating-wish';
-        card.innerHTML = `<div class="wish-heart ${w.liked ? 'liked' : ''}" onclick="likeWish(${i})" role="button" tabindex="0" aria-label="Like this wish"><span aria-hidden="true">❤️</span> <span class="wish-likes">${w.likes || 0}</span></div><div class="wish-msg">${w.msg}</div><div class="wish-from">— ${w.name}</div>`;
-        // Keyboard support for wish heart
-        const heart = card.querySelector('.wish-heart');
-        heart.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            likeWish(i);
-          }
-        });
-        wall.appendChild(card);
+    let wishes = JSON.parse(localStorage.getItem('bdayWishes') || 'null') || [];
+    const hasUserWished = localStorage.getItem('bdayHasWished') === 'true';
+    // Merge defaults so they always appear after user wishes
+    const allWishes = [...wishes.filter(w => !defaults.some(d => d.msg === w.msg && d.name === w.name)), ...defaults];
+
+    const wall = document.getElementById('wishWall');
+    const thanksEl = document.getElementById('wishThanks');
+    const formEl = document.getElementById('wishForm');
+
+    // ── Create a wish card element ──
+    function createWishCard(w, i, opts) {
+      opts = opts || {};
+      const card = document.createElement('div');
+      card.className = 'floating-wish' + (opts.isUser ? ' user-wish' : '');
+      let html = '';
+      if (opts.isNew) html += '<div class="wish-new">NEW</div>';
+      html += `<div class="wish-heart ${w.liked ? 'liked' : ''}" onclick="likeWish(${i})" role="button" tabindex="0" aria-label="Like this wish"><span aria-hidden="true">❤️</span> <span class="wish-likes">${w.likes || 0}</span></div>`;
+      html += `<div class="wish-msg">${w.msg}</div>`;
+      html += `<div class="wish-from">— ${w.name}</div>`;
+      card.innerHTML = html;
+      const heart = card.querySelector('.wish-heart');
+      heart.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); likeWish(i); }
       });
+      return card;
     }
 
-    function addWish() {
+    // ── Animate wishes in one by one ──
+    async function showWishesOneByOne(wishList, startIndex, opts) {
+      for (let i = 0; i < wishList.length; i++) {
+        await new Promise(r => setTimeout(r, 400));
+        const card = createWishCard(wishList[i], startIndex + i, opts);
+        wall.appendChild(card);
+        // Trigger reflow then add show class for animation
+        void card.offsetWidth;
+        card.classList.add('show');
+      }
+    }
+
+    // ── On page load ──
+    (async () => {
+      if (hasUserWished && wishes.length > 0) {
+        // User already wished before — show everything immediately
+        thanksEl.style.display = 'none';
+        formEl.style.display = 'none';
+        for (let i = 0; i < allWishes.length; i++) {
+          const isUser = i < wishes.length;
+          const card = createWishCard(allWishes[i], i, { isUser });
+          card.classList.add('show');
+          wall.appendChild(card);
+        }
+      }
+      // If not wished yet, show form only (no wishes visible)
+    })();
+
+    // ── Add wish ──
+    async function addWish() {
       const name = document.getElementById('wishName').value.trim() || 'Anonymous';
       const msg = document.getElementById('wishMsg').value.trim();
       if (!msg) { alert('Please write a wish!'); return; }
-      wishes.unshift({ name, msg, likes: 0, liked: false });
+
+      const btn = document.getElementById('wishBtn');
+      btn.disabled = true;
+      btn.textContent = '✨ Sending...';
+
+      const userWish = { name, msg, likes: 0, liked: false };
+      wishes.unshift(userWish);
       localStorage.setItem('bdayWishes', JSON.stringify(wishes));
+      localStorage.setItem('bdayHasWished', 'true');
+
+      // Hide form, show thanks
+      formEl.style.display = 'none';
+      thanksEl.style.display = 'block';
+
+      // Show user's wish first
+      await new Promise(r => setTimeout(r, 600));
+      const userCard = createWishCard(userWish, 0, { isUser: true, isNew: true });
+      wall.appendChild(userCard);
+      void userCard.offsetWidth;
+      userCard.classList.add('show');
+
+      // Launch confetti
+      try { parent.ConfettiEngine.launch(); } catch (e) {}
+
+      // Then show default wishes one by one
+      await showWishesOneByOne(defaults, 1, {});
+
+      // Clear form
       document.getElementById('wishName').value = '';
       document.getElementById('wishMsg').value = '';
-      renderWishes();
-      parent.ConfettiEngine.launch();
     }
 
     function likeWish(i) {
       wishes[i].liked = !wishes[i].liked;
       wishes[i].likes += wishes[i].liked ? 1 : -1;
       localStorage.setItem('bdayWishes', JSON.stringify(wishes));
-      renderWishes();
+      // Re-render all cards
+      wall.innerHTML = '';
+      wishes.forEach((w, j) => {
+        const card = createWishCard(w, j, { isUser: j === 0 });
+        card.classList.add('show');
+        wall.appendChild(card);
+      });
     }
-
-    renderWishes();
   </script>
 </body>
 </html>

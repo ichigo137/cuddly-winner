@@ -191,16 +191,9 @@
     async function loadPhotos() {
       try {
         const apiBase = getApiBaseUrl();
-        // Get auth token from parent window (set by login)
-        let token = '';
-        try { token = parent.window.__AUTH_TOKEN || ''; } catch (e) {}
-        if (!token) {
-          throw new Error('Not authenticated. Please log in first.');
-        }
+        const res = await fetch(apiBase + '/api/photos');
         console.log('[Slideshow] API base:', apiBase);
-        const res = await fetch(apiBase + '/api/photos', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
+
         console.log('[Slideshow] Response status:', res.status);
 
         if (!res.ok) {
