@@ -94,7 +94,7 @@
       background: radial-gradient(ellipse at 20% 50%, rgba(201,177,255,.08) 0%, transparent 50%),
                   radial-gradient(ellipse at 80% 50%, rgba(232,160,191,.08) 0%, transparent 50%),
                   var(--midnight);
-      padding: 60px 20px;
+      padding: 60px 20px 90px;
     }
     .qualities-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -126,34 +126,6 @@
     .quality-card:nth-child(6) .quality-icon { animation-delay: 1.5s; }
     .quality-card h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--gold-light); margin-bottom: 12px; }
     .quality-card p { font-size: 16px; line-height: 1.8; color: rgba(252,228,236,.8); font-weight: 300; }
-
-    /* TIMELINE */
-    #timeline-section { background: linear-gradient(180deg, var(--midnight), rgba(26,10,30,.95)); padding: 60px 20px; }
-    .timeline-container { max-width: 900px; margin: 0 auto; position: relative; }
-    .timeline-line {
-      position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
-      background: linear-gradient(180deg, transparent, var(--gold), var(--rose), var(--gold), transparent);
-      transform: translateX(-50%);
-    }
-    .timeline-item {
-      display: flex; align-items: center; margin-bottom: 60px; position: relative;
-    }
-    .timeline-item:nth-child(odd) { flex-direction: row; }
-    .timeline-item:nth-child(even) { flex-direction: row-reverse; }
-    .timeline-content {
-      width: 42%; padding: 30px;
-      background: linear-gradient(145deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border: 1px solid rgba(212,168,83,.2); border-radius: 16px; transition: all .4s;
-    }
-    .timeline-content:hover { border-color: var(--gold); box-shadow: 0 10px 40px rgba(212,168,83,.15); }
-    .timeline-dot {
-      width: 20px; height: 20px; background: var(--gold); border-radius: 50%;
-      position: absolute; left: 50%; transform: translateX(-50%);
-      box-shadow: 0 0 20px rgba(212,168,83,.5); z-index: 2;
-    }
-    .timeline-year { font-family: 'Dancing Script', cursive; font-size: 20px; color: var(--gold); margin-bottom: 8px; }
-    .timeline-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--rose); margin-bottom: 8px; }
-    .timeline-desc { font-size: 16px; color: rgba(252,228,236,.7); line-height: 1.7; font-weight: 300; }
 
     /* FINALE */
     #finale-section {
@@ -219,7 +191,7 @@
   </section>
 
   <!-- QUALITIES -->
-  <section id="qualities-section">
+  <section id="qualities-section" style="padding-top: 0;">
     <div class="section-header"><div class="ornament">✦ ✦ ✦</div><h2>You Are Everything</h2><p>What makes you truly extraordinary</p></div>
     <div class="qualities-grid">
       <div class="quality-card"><span class="quality-icon">🌟</span><h3>A Guiding Light</h3><p>You illuminate the path for everyone around you. Your wisdom and warmth are a compass that always points toward what matters most.</p></div>
@@ -228,19 +200,6 @@
       <div class="quality-card"><span class="quality-icon">💕</span><h3>Infinite Love</h3><p>Your heart knows no bounds. You love fiercely, deeply, and completely. To be loved by you is one of the greatest gifts anyone can receive.</p></div>
       <div class="quality-card"><span class="quality-icon">🌸</span><h3>A Beautiful Soul</h3><p>Inside and out, you radiate beauty. Your kindness, your laughter, your spirit — they paint the world in colors of joy.</p></div>
       <div class="quality-card"><span class="quality-icon">✨</span><h3>Simply Magic</h3><p>There's something magical about you that defies explanation. You make ordinary moments extraordinary just by being you.</p></div>
-    </div>
-  </section>
-
-  <!-- TIMELINE -->
-  <section id="timeline-section">
-    <div class="section-header"><div class="ornament">✦ ✦ ✦</div><h2>Our Beautiful Journey</h2><p>Moments that made us who we are</p></div>
-    <div class="timeline-container">
-      <div class="timeline-line"></div>
-      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">The Beginning</div><div class="timeline-title">The Day You Came Into This World</div><div class="timeline-desc">You arrived like a ray of sunshine, filling our lives with a light that has never dimmed. From your very first breath, you made the world a better place.</div></div><div class="timeline-dot"></div></div>
-      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">Childhood Days</div><div class="timeline-title">Adventures &amp; Innocence</div><div class="timeline-desc">From building blanket forts to chasing butterflies, every moment with you was an adventure. You made childhood a fairy tale I'll never forget.</div></div><div class="timeline-dot"></div></div>
-      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">Growing Up</div><div class="timeline-title">You Became My Hero</div><div class="timeline-desc">As we grew older, I watched you transform into the most remarkable person. You faced challenges with courage and emerged stronger every time.</div></div><div class="timeline-dot"></div></div>
-      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">Today</div><div class="timeline-title">Celebrating YOU</div><div class="timeline-desc">Today we celebrate not just a birthday, but the gift of having you in our lives. Every year with you is a treasure beyond measure.</div></div><div class="timeline-dot"></div></div>
-      <div class="timeline-item"><div class="timeline-content"><div class="timeline-year">Forever</div><div class="timeline-title">A Bond That Never Breaks</div><div class="timeline-desc">No matter where life takes us, you will always be my sister, my friend, my heart. This bond is eternal, unbreakable, and absolutely beautiful.</div></div><div class="timeline-dot"></div></div>
     </div>
   </section>
 
