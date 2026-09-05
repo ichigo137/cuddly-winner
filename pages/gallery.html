@@ -12,6 +12,7 @@
     .carousel {
       position: relative; width: 100%; aspect-ratio: 3/4; max-height: 70vh;
       border-radius: 24px; overflow: hidden;
+      background: var(--midnight);
       border: 2px solid rgba(212,168,83,.25); box-shadow: 0 20px 80px rgba(212,168,83,.15);
       touch-action: pan-y; user-select: none;
     }
@@ -23,7 +24,8 @@
     }
     .card.active { opacity: 1; transform: scale(1) translateX(0); pointer-events: auto; }
     .card.exit-left { opacity: 0; transform: scale(0.92) translateX(-60px); }
-    .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card.exit-right { opacity: 0; transform: scale(0.92) translateX(60px); }
+    .card img { object-fit: cover; display: block; height: 100%; width: 100%; }
     .card .placeholder {
       width: 100%; height: 100%; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 12px;
@@ -81,16 +83,16 @@
     //  Upload at https://imgbb.com → copy "Direct link"
     // ══════════════════════════════════════════════════
     const photos = [
-      { url: 'https://i.ibb.co/ycNjcMbV/IMG-20260902-WA0023.jpg'},
-      { url: 'https://i.ibb.co/99DZY8Gy/IMG-20260902-WA0028.jpg',  },
-      { url: 'https://i.ibb.co/HLq9CQHC/IMG-20260902-WA0029.jpg',  },
-      { url: 'https://i.ibb.co/S85XYTY/IMG-20260902-WA0030.jpg',  },
-      { url: 'https://i.ibb.co/rGt2CRQK/IMG-20260902-WA0031.jpg', },
-      { url: 'https://i.ibb.co/KjD5xkDY/IMG-20260902-WA0032.jpg', },
-      { url: 'https://i.ibb.co/mrXF1r4V/IMG-20260902-WA0033.jpg', },
-      { url: 'https://i.ibb.co/wFZ5XPfZ/IMG-20260902-WA0034.jpg', },
-      { url: 'https://i.ibb.co/vvrVg6Vg/IMG-20260902-WA0038.jpg', },
-      { url: 'https://i.ibb.co/HfD6hkfv/IMG-20260902-WA0040.jpg', },
+      { url: 'https://i.ibb.co/ycNjcMbV/IMG-20260902-WA0023.jpg', caption: 'Memory' },
+      { url: 'https://i.ibb.co/99DZY8Gy/IMG-20260902-WA0028.jpg', caption: 'Memory' },
+      { url: 'https://i.ibb.co/HLq9CQHC/IMG-20260902-WA0029.jpg', caption: 'Memory' },
+      { url: 'https://i.ibb.co/S85XYTY/IMG-20260902-WA0030.jpg', caption: 'Memory' },
+      { url: 'https://i.ibb.co/rGt2CRQK/IMG-20260902-WA0031.jpg', caption: 'Memory' },
+      { url: 'https://i.ibb.co/KjD5xkDY/IMG-20260902-WA0032.jpg', caption: 'Memory' },
+      { url: 'https://i.ibb.co/mrXF1r4V/IMG-20260902-WA0033.jpg', caption: 'Memory' },
+      { url: 'https://i.ibb.co/wFZ5XPfZ/IMG-20260902-WA0034.jpg', caption: 'Memory' },
+      { url: 'https://i.ibb.co/vvrVg6Vg/IMG-20260902-WA0038.jpg', caption: 'Memory' },
+      { url: 'https://i.ibb.co/HfD6hkfv/IMG-20260902-WA0040.jpg', caption: 'Memory' },
     ];
 
     const carousel = document.getElementById('carousel');
@@ -99,11 +101,12 @@
     let idx = 0, startX = 0, deltaX = 0, swiping = false;
 
     photos.forEach((photo, i) => {
+      const captionText = typeof photo.caption === 'string' && photo.caption.trim() ? photo.caption.trim() : 'Memory';
       const card = document.createElement('div');
       card.className = 'card' + (i === 0 ? ' active' : '');
       card.innerHTML = photo.url
-        ? `<img src="${photo.url}" alt="${photo.caption}" loading="${i < 2 ? 'eager' : 'lazy'}"><div class="caption">${photo.caption}</div>`
-        : `<div class="placeholder"><div class="icon">📸</div><div class="text">${photo.caption}</div></div>`;
+        ? `<img src="${photo.url}" alt="${captionText}" loading="${i < 2 ? 'eager' : 'lazy'}"><div class="caption">${captionText}</div>`
+        : `<div class="placeholder"><div class="icon">📸</div><div class="text">${captionText}</div></div>`;
       carousel.insertBefore(card, document.getElementById('nextBtn'));
     });
 
@@ -120,15 +123,17 @@
       const cards = document.querySelectorAll('.card');
       const oldCard = cards[idx], newCard = cards[newIdx];
       const goingRight = direction !== undefined ? direction === 'right' : newIdx > idx;
-      oldCard.classList.remove('active');
-      oldCard.classList.add(goingRight ? 'exit-left' : '');
-      if (!goingRight) oldCard.style.transform = 'scale(0.92) translateX(60px)';
-      newCard.classList.remove('exit-left');
+      oldCard.classList.remove('active', 'exit-left', 'exit-right');
+      oldCard.classList.add(goingRight ? 'exit-left' : 'exit-right');
+      newCard.classList.remove('exit-left', 'exit-right');
       newCard.style.transform = goingRight ? 'translateX(60px)' : 'translateX(-60px)';
       void newCard.offsetWidth;
       newCard.classList.add('active');
       newCard.style.transform = '';
-      setTimeout(() => { oldCard.classList.remove('exit-left'); oldCard.style.transform = ''; }, 500);
+      setTimeout(() => {
+        oldCard.classList.remove('exit-left', 'exit-right');
+        oldCard.style.transform = '';
+      }, 500);
       idx = newIdx;
       document.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
       counterEl.textContent = `${idx + 1} / ${photos.length}`;
@@ -147,15 +152,15 @@
       if (Math.abs(deltaX) > 50) { deltaX < 0 ? goTo(idx < photos.length - 1 ? idx + 1 : 0, 'right') : goTo(idx > 0 ? idx - 1 : photos.length - 1, 'left'); }
       deltaX = 0;
     });
-    let mouseDown = false, mouseStartX = 0;
-    carousel.addEventListener('mousedown', e => { mouseDown = true; mouseStartX = e.clientX; e.preventDefault(); });
-    carousel.addEventListener('mousemove', e => { if (mouseDown) deltaX = e.clientX - mouseStartX; });
+    let mouseDown = false, mouseStartX = 0, mouseDelta = 0;
+    carousel.addEventListener('mousedown', e => { mouseDown = true; mouseStartX = e.clientX; mouseDelta = 0; e.preventDefault(); });
+    carousel.addEventListener('mousemove', e => { if (mouseDown) mouseDelta = e.clientX - mouseStartX; });
     carousel.addEventListener('mouseup', () => {
       if (!mouseDown) return; mouseDown = false;
-      if (Math.abs(deltaX) > 50) { deltaX < 0 ? goTo(idx < photos.length - 1 ? idx + 1 : 0, 'right') : goTo(idx > 0 ? idx - 1 : photos.length - 1, 'left'); }
-      deltaX = 0;
+      if (Math.abs(mouseDelta) > 50) { mouseDelta < 0 ? goTo(idx < photos.length - 1 ? idx + 1 : 0, 'right') : goTo(idx > 0 ? idx - 1 : photos.length - 1, 'left'); }
+      mouseDelta = 0;
     });
-    carousel.addEventListener('mouseleave', () => { mouseDown = false; deltaX = 0; });
+    carousel.addEventListener('mouseleave', () => { mouseDown = false; mouseDelta = 0; });
   </script>
 </body>
 </html>
